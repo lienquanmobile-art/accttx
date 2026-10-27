@@ -138,3 +138,18 @@ tr:hover td { background: rgba(0,240,255,.04); }
   .panel { padding: 14px; }
   th, td { font-size: .76rem; padding: 8px 5px; }
 }
+/* Fix: đảm bảo nút Nhận Acc luôn clickable */
+#btnGetAccount {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 10;
+}
+#btnGetAccount:disabled {
+  cursor: wait !important;
+  opacity: 0.6;
+}
+.panel-center {
+  position: relative;
+  z-index: 1;
+}
