@@ -5,6 +5,7 @@ import { getDatabase, ref, get, set, update, remove, push, onValue, runTransacti
 const firebaseConfig = {
   apiKey: "AIzaSyATKLs3Wvd1LCsLRzvgVP0Ag8c7sngs8b4",
   authDomain: "accttxlienquan.firebaseapp.com",
+  // ⚠️ QUAN TRỌNG: kiểm tra đúng URL trong Firebase Console → Realtime Database
   databaseURL: "https://accttxlienquan-default-rtdb.firebaseio.com",
   projectId: "accttxlienquan",
   storageBucket: "accttxlienquan.firebasestorage.app",
@@ -13,5 +14,14 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app);
+
+let dbInstance;
+try {
+  dbInstance = getDatabase(app);
+} catch (e) {
+  console.error("❌ Không khởi tạo được Realtime Database:", e);
+  dbInstance = null;
+}
+export const db = dbInstance;
+
 export { ref, get, set, update, remove, push, onValue, runTransaction };
