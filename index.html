@@ -1,11 +1,77 @@
 <!DOCTYPE html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLACK • Acc Liên Quân</title>
-<link rel="stylesheet" href="css/style.css">
-</head><body><div class="w" id="app"></div>
-<script src="js/config.js"></script>
-<script src="js/store.js"></script>
-<script src="js/actions.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/app.js"></script>
-</body></html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLACK SYSTEM - Quản Lý Tài Khoản</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <!-- ===== MÀN HÌNH LOGIN ===== -->
+  <div id="loginScreen" class="screen active">
+    <div class="login-box neon-border">
+      <h1 class="logo neon-text">BLACK<span>SYSTEM</span></h1>
+      <p class="subtitle">Hệ thống quản lý tài khoản</p>
+
+      <div class="login-tabs">
+        <button class="ltab active" data-tab="pass">Mật khẩu</button>
+        <button class="ltab" data-tab="key">Private Key</button>
+      </div>
+
+      <!-- Login bằng mật khẩu -->
+      <div id="loginPassTab" class="login-pane active">
+        <label>Tên đăng nhập</label>
+        <input id="loginUsername" type="text" placeholder="Nhập tên đăng nhập..." />
+        <label>Mật khẩu</label>
+        <input id="loginPassword" type="password" placeholder="Nhập mật khẩu..." />
+        <button id="btnLoginPass" class="btn-neon full">Đăng nhập</button>
+      </div>
+
+      <!-- Login bằng key -->
+      <div id="loginKeyTab" class="login-pane">
+        <label>Private Key</label>
+        <input id="loginKey" type="text" placeholder="BLACK_xxxxxxxx" />
+        <button id="btnLoginKey" class="btn-neon full">Đăng nhập bằng Key</button>
+      </div>
+
+      <p id="loginMsg" class="msg"></p>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="dashboardScreen" class="screen">
+    <header class="topbar">
+      <h2 class="logo neon-text">BLACK<span>SYSTEM</span></h2>
+      <div class="user-info">
+        <span id="currentUserLabel"></span>
+        <span id="currentRoleBadge" class="badge"></span>
+        <span id="keyTimer" class="key-timer hidden">Key: 00:00:00</span>
+        <button id="btnLogout" class="btn-neon small">Đăng xuất</button>
+      </div>
+    </header>
+
+    <!-- Tabs chính (Owner/Admin) -->
+    <nav id="mainTabs" class="main-tabs hidden"></nav>
+
+    <!-- Owner/Admin content -->
+    <div id="adminContent" class="content hidden"></div>
+
+    <!-- User/Khách content -->
+    <div id="userContent" class="content hidden">
+      <div class="panel-center">
+        <h2 class="neon-text">Nhận Acc Cộng Đồng</h2>
+        <button id="btnGetAccount" class="btn-neon big">🎁 NHẬN ACC</button>
+        <div id="receivedAccBox" class="acc-card hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Firebase SDK -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
