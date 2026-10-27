@@ -1,9 +1,12 @@
-import { db, ref, get, runTransaction } from "./firebase-config.js";
+import { db, ref, get, remove } from "./firebase-config.js";
 import { toast, fmtTime, keyRemain, KEY_DURATIONS, writeLog } from "./utils.js";
 
 let timerId = null;
 
 export function renderUserGuest(user) {
+  console.log("👤 [renderUserGuest] role =", user.role);
+
+  // Timer key khách
   const timerEl = document.getElementById("keyTimer");
   if (timerId) clearInterval(timerId);
 
@@ -29,93 +32,103 @@ export function renderUserGuest(user) {
     timerEl.classList.add("hidden");
   }
 
+  // ⚠️ BIND LẠI NÚT — DÙNG addEventListener + gỡ listener cũ
   const btn = document.getElementById("btnGetAccount");
-  if (btn) btn.onclick = () => claimAccount(user);
+  if (!btn) {
+    console.error("❌ Không tìm thấy #btnGetAccount");
+    return;
+  }
+
+  // Đảm bảo nút không bị disabled từ HTML
+  btn.disabled = false;
+  btn.removeAttribute("disabled");
+  btn.style.pointerEvents = "auto";
+
+  // Gỡ onclick cũ (nếu có) và gắn mới
+  btn.onclick = null;
+  const handler = () => {
+    console.log("🖱️ [btnGetAccount] CLICK!");
+    claimAccount(user);
+  };
+  btn.addEventListener("click", handler);
+
+  console.log("✅ [renderUserGuest] Đã gắn sự kiện click vào nút Nhận Acc");
 }
 
 /* ===== Nhận acc ===== */
 async function claimAccount(user) {
+  console.log("🎯 [claimAccount] Bắt đầu, user =", user);
+
   const btn = document.getElementById("btnGetAccount");
   const box = document.getElementById("receivedAccBox");
-  if (!btn) return;
 
-  // Reset UI
   btn.disabled = true;
   btn.textContent = "⏳ Đang lấy...";
-  if (box) box.classList.add("hidden");
 
   try {
     // 1) Khách: check hạn mức
     let keyPath = null;
     if (user.role === "guest") {
       keyPath = `keys/${user.key}`;
+      console.log("🔍 [claimAccount] Check key:", keyPath);
       const kSnap = await get(ref(db, keyPath));
       if (!kSnap.exists()) { toast("Key không tồn tại hoặc đã hết hạn", "error"); return; }
       const k = kSnap.val();
       const dur = KEY_DURATIONS[k.duration]?.sec || 0;
       if (k.activatedAt && Date.now() / 1000 >= k.activatedAt + dur) {
-        toast("Key đã hết hạn", "error");
-        return;
+        toast("Key đã hết hạn", "error"); return;
       }
       const max = k.maxAcc === -1 ? Infinity : (k.maxAcc || 0);
       if ((k.usedAcc || 0) >= max) {
-        toast(`Key đã đạt giới hạn ${max} acc`, "error");
-        return;
+        toast(`Key đã đạt giới hạn ${max} acc`, "error"); return;
       }
     }
 
-    // 2) Đọc danh sách acc "Mở"
+    // 2) Lấy danh sách acc
+    console.log("📥 [claimAccount] Đọc /lienquan...");
     const allSnap = await get(ref(db, "lienquan"));
     if (!allSnap.exists()) {
-      toast("⚠️ Chưa có tài khoản nào trong kho", "error");
+      toast("⚠️ Kho acc trống", "error");
       return;
     }
     const all = allSnap.val() || {};
     const openList = Object.entries(all).filter(([_, a]) => a && a.status === "open");
+    console.log("📋 [claimAccount] Tổng acc:", Object.keys(all).length, "| Acc Mở:", openList.length);
 
     if (openList.length === 0) {
-      toast("⚠️ Hiện không có acc Mở (tất cả đang Khóa hoặc hết)", "error");
+      toast("⚠️ Không có acc nào ở trạng thái Mở", "error");
       return;
     }
 
-    // 3) Chọn ngẫu nhiên
+    // 3) Random
     const picked = openList[Math.floor(Math.random() * openList.length)];
     const [id, acc] = picked;
+    console.log("🎲 [claimAccount] Chọn acc:", id, acc.username);
 
-    // 4) Xóa acc khỏi DB bằng transaction (chống trùng)
-    let removed = false;
-    await new Promise((resolve) => {
-      runTransaction(
-        ref(db, `lienquan/${id}`),
-        (cur) => {
-          if (!cur || cur.status !== "open") return; // abort
-          return null; // xóa
-        },
-        (err, committed) => {
-          if (err) console.error("Transaction error:", err);
-          removed = !err && committed === true;
-          resolve();
-        }
-      );
-    });
+    // 4) Xóa acc
+    console.log("🗑️ [claimAccount] Xóa acc khỏi DB...");
+    await remove(ref(db, `lienquan/${id}`));
+    console.log("✅ [claimAccount] Đã xóa acc");
 
-    if (!removed) {
-      toast("Acc vừa bị người khác lấy, thử lại...", "error");
-      // Đệ quy thử lại 1 lần
-      return claimAccount(user);
-    }
-
-    // 5) Tăng usedAcc cho khách
+    // 5) Tăng usedAcc
     if (keyPath) {
       try {
-        await runTransaction(ref(db, keyPath + "/usedAcc"), (cur) => (cur || 0) + 1);
+        const kSnap2 = await get(ref(db, keyPath));
+        if (kSnap2.exists()) {
+          const newUsed = (kSnap2.val().usedAcc || 0) + 1;
+          await ref(db, keyPath + "/usedAcc").set ? null : null; // no-op
+          // Dùng update trực tiếp
+          const { update } = await import("./firebase-config.js");
+          await update(ref(db, keyPath), { usedAcc: newUsed });
+          console.log("📊 [claimAccount] usedAcc mới:", newUsed);
+        }
       } catch (e) { console.error("Update usedAcc lỗi:", e); }
     }
 
     // 6) Log
     try { await writeLog(user.username, "Nhận acc", `${acc.username} (${id})`); } catch {}
 
-    // 7) Hiển thị kết quả
+    // 7) Hiển thị
     if (box) {
       box.classList.remove("hidden");
       box.innerHTML = `
@@ -130,11 +143,12 @@ async function claimAccount(user) {
     toast("✅ Nhận acc thành công!", "ok");
 
   } catch (e) {
-    console.error("claimAccount error:", e);
+    console.error("❌ [claimAccount] Lỗi:", e);
     toast("❌ Lỗi: " + (e.message || "Không xác định"), "error");
   } finally {
-    // LUÔN bật lại nút, kể cả khi lỗi
     btn.disabled = false;
+    btn.removeAttribute("disabled");
     btn.textContent = "🎁 NHẬN ACC";
+    console.log("🔓 [claimAccount] Đã bật lại nút");
   }
 }
