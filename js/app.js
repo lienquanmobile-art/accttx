@@ -1,8 +1,10 @@
 import { ensureOwner, session, toast } from "./utils.js";
 import { loginWithPassword, loginWithKey } from "./auth.js";
 
-/* ===== Điều phối render dashboard (inline — không cần file riêng) ===== */
+/* ===== Render dashboard ===== */
 async function renderDashboard(user) {
+  console.log("🎨 [renderDashboard] role =", user.role, "user =", user);
+
   const mainTabs = document.getElementById("mainTabs");
   const adminContent = document.getElementById("adminContent");
   const userContent = document.getElementById("userContent");
@@ -23,32 +25,33 @@ async function renderDashboard(user) {
       renderUserGuest(user);
     }
   } catch (e) {
-    console.error("❌ Lỗi render dashboard:", e);
+    console.error("❌ [renderDashboard] error:", e);
     toast("Lỗi tải giao diện: " + e.message, "error");
   }
 }
 
 /* ===== Khởi tạo ===== */
 window.addEventListener("DOMContentLoaded", async () => {
-  // Gắn UI login trước — luôn hoạt động dù Firebase lỗi
+  console.log("🚀 [app] DOMContentLoaded");
+
   bindLoginUI();
 
-  // Seed owner (nếu Firebase lỗi chỉ log, không chặn UI)
   try {
     await ensureOwner();
   } catch (e) {
-    console.error("❌ ensureOwner lỗi:", e);
+    console.error("❌ [app] ensureOwner error:", e);
     toast("Không kết nối được Firebase — kiểm tra databaseURL", "error");
   }
 
-  // Khôi phục session cũ
   const u = session.get();
-  if (u) showDashboard(u);
+  if (u) {
+    console.log("🔑 [app] Khôi phục session:", u);
+    showDashboard(u);
+  }
 });
 
 /* ===== LOGIN UI ===== */
 function bindLoginUI() {
-  // Tabs login (dùng event delegation cho chắc)
   const tabBar = document.querySelector(".login-tabs");
   if (tabBar) {
     tabBar.addEventListener("click", (ev) => {
@@ -62,103 +65,66 @@ function bindLoginUI() {
     });
   }
 
-  // Nút login bằng mật khẩu
   const btnPass = document.getElementById("btnLoginPass");
   if (btnPass) {
     btnPass.onclick = async () => {
       const msg = document.getElementById("loginMsg");
       const u = document.getElementById("loginUsername").value.trim();
       const p = document.getElementById("loginPassword").value;
-
       if (!u || !p) {
-        msg.className = "msg error";
-        msg.textContent = "Nhập đủ tên đăng nhập và mật khẩu";
-        return;
+        msg.className = "msg error"; msg.textContent = "Nhập đủ thông tin"; return;
       }
-
-      btnPass.disabled = true;
-      btnPass.textContent = "Đang đăng nhập...";
-      msg.className = "msg";
-      msg.textContent = "";
-
+      btnPass.disabled = true; btnPass.textContent = "Đang đăng nhập...";
+      msg.className = "msg"; msg.textContent = "";
       try {
         const res = await loginWithPassword(u, p);
-        if (!res.ok) {
-          msg.className = "msg error";
-          msg.textContent = res.msg;
-          return;
-        }
+        if (!res.ok) { msg.className = "msg error"; msg.textContent = res.msg; return; }
         showDashboard(res.user);
       } catch (e) {
-        console.error(e);
-        msg.className = "msg error";
-        msg.textContent = "Lỗi kết nối: " + e.message;
+        msg.className = "msg error"; msg.textContent = "Lỗi: " + e.message;
       } finally {
-        btnPass.disabled = false;
-        btnPass.textContent = "Đăng nhập";
+        btnPass.disabled = false; btnPass.textContent = "Đăng nhập";
       }
     };
   }
 
-  // Nút login bằng key
   const btnKey = document.getElementById("btnLoginKey");
   if (btnKey) {
     btnKey.onclick = async () => {
       const msg = document.getElementById("loginMsg");
       const k = document.getElementById("loginKey").value.trim();
-      if (!k) {
-        msg.className = "msg error";
-        msg.textContent = "Nhập private key";
-        return;
-      }
-
-      btnKey.disabled = true;
-      btnKey.textContent = "Đang kiểm tra...";
-      msg.className = "msg";
-      msg.textContent = "";
-
+      if (!k) { msg.className = "msg error"; msg.textContent = "Nhập key"; return; }
+      btnKey.disabled = true; btnKey.textContent = "Đang kiểm tra...";
+      msg.className = "msg"; msg.textContent = "";
       try {
         const res = await loginWithKey(k);
-        if (!res.ok) {
-          msg.className = "msg error";
-          msg.textContent = res.msg;
-          return;
-        }
+        if (!res.ok) { msg.className = "msg error"; msg.textContent = res.msg; return; }
         showDashboard(res.user);
       } catch (e) {
-        console.error(e);
-        msg.className = "msg error";
-        msg.textContent = "Lỗi kết nối: " + e.message;
+        msg.className = "msg error"; msg.textContent = "Lỗi: " + e.message;
       } finally {
-        btnKey.disabled = false;
-        btnKey.textContent = "Đăng nhập bằng Key";
+        btnKey.disabled = false; btnKey.textContent = "Đăng nhập bằng Key";
       }
     };
   }
 
-  // Logout
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
-    btnLogout.onclick = () => {
-      session.clear();
-      location.reload();
-    };
+    btnLogout.onclick = () => { session.clear(); location.reload(); };
   }
 
-  // Enter để submit nhanh
   const inputPass = document.getElementById("loginPassword");
   if (inputPass) inputPass.addEventListener("keydown", (e) => { if (e.key === "Enter") btnPass?.click(); });
   const inputKey = document.getElementById("loginKey");
   if (inputKey) inputKey.addEventListener("keydown", (e) => { if (e.key === "Enter") btnKey?.click(); });
 }
 
-/* ===== Hiển thị Dashboard ===== */
+/* ===== Hiển thị dashboard ===== */
 function showDashboard(user) {
   document.getElementById("loginScreen").classList.remove("active");
   document.getElementById("dashboardScreen").classList.add("active");
 
   document.getElementById("currentUserLabel").textContent = user.username;
-
   const roleBadge = document.getElementById("currentRoleBadge");
   roleBadge.textContent = (user.role || "").toUpperCase();
   roleBadge.style.color =
