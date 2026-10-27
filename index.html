@@ -20,7 +20,6 @@
         <button class="ltab" data-tab="key">Private Key</button>
       </div>
 
-      <!-- Login bằng mật khẩu -->
       <div id="loginPassTab" class="login-pane active">
         <label>Tên đăng nhập</label>
         <input id="loginUsername" type="text" placeholder="Nhập tên đăng nhập..." />
@@ -29,7 +28,6 @@
         <button id="btnLoginPass" class="btn-neon full">Đăng nhập</button>
       </div>
 
-      <!-- Login bằng key -->
       <div id="loginKeyTab" class="login-pane">
         <label>Private Key</label>
         <input id="loginKey" type="text" placeholder="BLACK_xxxxxxxx" />
@@ -52,26 +50,24 @@
       </div>
     </header>
 
-    <!-- Tabs chính (Owner/Admin) -->
     <nav id="mainTabs" class="main-tabs hidden"></nav>
 
-    <!-- Owner/Admin content -->
     <div id="adminContent" class="content hidden"></div>
 
-    <!-- User/Khách content -->
     <div id="userContent" class="content hidden">
       <div class="panel-center">
         <h2 class="neon-text">Nhận Acc Cộng Đồng</h2>
-        <button id="btnGetAccount" class="btn-neon big">🎁 NHẬN ACC</button>
+        <!-- Nút KHÔNG có thuộc tính disabled, không có class làm mờ -->
+        <button id="btnGetAccount" type="button" class="btn-neon big" style="pointer-events:auto; opacity:1;">
+          🎁 NHẬN ACC
+        </button>
         <div id="receivedAccBox" class="acc-card hidden"></div>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <!-- Firebase SDK -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
