@@ -4,7 +4,7 @@ try{S=JSON.parse(localStorage.getItem('st'))}catch(x){}
 S=Object.assign({users:[],keys:[],lq:[],cs:[],logs:[]},S||{});
 if(!S.users.some(u=>u.role=='owner'))S.users.unshift(OWNER);
 try{ses=JSON.parse(localStorage.getItem('ses'))}catch(x){}
-function save(){try{localStorage.setItem('st',JSON.stringify(S))}catch(x){}if(dbRef)dbRef.set({json:JSON.stringify(S)}).catch(()=>{})}
+function save(){try{localStorage.setItem('st',JSON.stringify(S))}catch(x){}if(dbRef)dbRef.set(JSON.stringify(S)).catch(()=>{})}
 function log(t){S.logs.unshift({t:new Date().toLocaleString('vi-VN'),a:ses?ses.name+' ('+ses.role+')':'-',x:t})}
 const rnd=()=>{const c='abcdefghijklmnopqrstuvwxyz0123456789';return Array.from({length:8},()=>c[Math.random()*36|0]).join('')};
 const allKeys=()=>[...S.users.map(u=>u.key),...S.keys.map(k=>k.key)];
