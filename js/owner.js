@@ -1,7 +1,7 @@
-import { db, ref, set, get, remove, onValue } from "./firebase-config.js";
+import { db, ref, set, get, remove, onValue, update } from "./firebase-config.js";
 import {
   toast, rand8, genGuestKey, genFixedKey, fmtTime, copyText, writeLog,
-  KEY_DURATIONS, listenKeys, keyStatus, keyRemain, durationLabel,
+  KEY_DURATIONS, listenKeys, keyStatus, keyRemain,
 } from "./utils.js";
 
 let currentKeys = [];
@@ -171,7 +171,7 @@ function renderKeyCreatePane() {
     `;
     document.querySelector("#k_result .copy-btn").onclick = () => copyText(key);
     toast("Tạo key thành công", "ok");
-    renderKeyListPane(); // refresh list nếu đang mở
+    renderKeyListPane();
   };
 }
 
@@ -231,10 +231,6 @@ function tabLienQuan() {
         <input id="lq_pass" placeholder="Mật khẩu" />
         <input id="lq_tuong" type="number" placeholder="Số tướng" />
         <input id="lq_skin" type="number" placeholder="Số skin" />
-        <select id="lq_status">
-          <option value="open">Mở</option>
-          <option value="locked">Khóa</option>
-        </select>
       </div>
       <button class="btn-neon full" id="lq_add">Thêm</button>
     </div>
@@ -242,7 +238,7 @@ function tabLienQuan() {
       <h3>Danh sách tài khoản đã thêm</h3>
       <table>
         <thead>
-          <tr><th>Tên TK</th><th>Mật khẩu</th><th>Số tướng</th><th>Số skin</th><th>Trạng thái</th><th></th></tr>
+          <tr><th>Tên TK</th><th>Mật khẩu</th><th>Số tướng</th><th>Số skin</th><th>Trạng thái</th><th>Hành động</th></tr>
         </thead>
         <tbody id="lqBody"></tbody>
       </table>
@@ -251,17 +247,18 @@ function tabLienQuan() {
 }
 
 function bindLienQuan() {
+  // Nút thêm acc mới
   document.getElementById("lq_add").onclick = async () => {
     const username = document.getElementById("lq_user").value.trim();
     const password = document.getElementById("lq_pass").value;
     const tuong = Number(document.getElementById("lq_tuong").value) || 0;
     const skin = Number(document.getElementById("lq_skin").value) || 0;
-    const status = document.getElementById("lq_status").value;
     if (!username || !password) return toast("Nhập đủ thông tin", "error");
 
     const id = Date.now() + "_" + rand8();
     await set(ref(db, `lienquan/${id}`), {
-      username, password, tuong, skin, status,
+      username, password, tuong, skin, 
+      status: "open", // Mặc định luôn là Mở
       createdAt: new Date().toISOString(),
     });
     await writeLog("owner", "Thêm acc Liên Quân", username);
@@ -269,6 +266,7 @@ function bindLienQuan() {
     ["lq_user","lq_pass","lq_tuong","lq_skin"].forEach((i) => document.getElementById(i).value = "");
   };
 
+  // Lắng nghe danh sách
   onValue(ref(db, "lienquan"), (snap) => {
     const body = document.getElementById("lqBody");
     if (!body) return;
@@ -278,19 +276,45 @@ function bindLienQuan() {
       body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#8ab">Chưa có acc</td></tr>`;
       return;
     }
-    body.innerHTML = list.map(([id, a]) => `
+    body.innerHTML = list.map(([id, a]) => {
+      const isOpen = a.status === "open";
+      const statusText = isOpen ? "Mở" : "Khóa";
+      const btnToggleText = isOpen ? "Khóa" : "Mở";
+      const btnToggleClass = isOpen ? "btn-lock" : "btn-open";
+      
+      return `
       <tr>
         <td>${a.username}</td>
         <td>${a.password}</td>
         <td>${a.tuong}</td>
         <td>${a.skin}</td>
-        <td><span class="status ${a.status === "open" ? "open" : "locked"}">${a.status === "open" ? "Mở" : "Khóa"}</span></td>
-        <td><button class="copy-btn" data-del="${id}">Xóa</button></td>
+        <td><span class="status ${isOpen ? "open" : "locked"}">${statusText}</span></td>
+        <td>
+          <button class="copy-btn ${btnToggleClass}" data-toggle="${id}" data-current="${a.status}">${btnToggleText}</button>
+          <button class="copy-btn" style="border-color:var(--red); color:var(--red);" data-del="${id}">Xóa</button>
+        </td>
       </tr>
-    `).join("");
+    `}).join("");
+
+    // Gắn sự kiện cho nút Khóa/Mở
+    body.querySelectorAll("[data-toggle]").forEach((b) => {
+      b.onclick = async () => {
+        const id = b.dataset.toggle;
+        const current = b.dataset.current;
+        const newStatus = current === "open" ? "locked" : "open";
+        
+        await update(ref(db, `lienquan/${id}`), { status: newStatus });
+        await writeLog("owner", "Đổi trạng thái LQ", `${id} -> ${newStatus}`);
+        toast(`Đã chuyển sang ${newStatus === "open" ? "Mở" : "Khóa"}`, "ok");
+      };
+    });
+
+    // Gắn sự kiện cho nút Xóa
     body.querySelectorAll("[data-del]").forEach((b) => {
       b.onclick = async () => {
+        if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
         await remove(ref(db, `lienquan/${b.dataset.del}`));
+        await writeLog("owner", "Xóa acc Liên Quân", b.dataset.del);
         toast("Đã xóa", "ok");
       };
     });
@@ -343,11 +367,12 @@ function bindChungSuc() {
     body.innerHTML = list.map(([id, a]) => `
       <tr>
         <td>${a.username}</td><td>${a.password}</td>
-        <td><button class="copy-btn" data-del="${id}">Xóa</button></td>
+        <td><button class="copy-btn" style="border-color:var(--red); color:var(--red);" data-del="${id}">Xóa</button></td>
       </tr>
     `).join("");
     body.querySelectorAll("[data-del]").forEach((b) => {
       b.onclick = async () => {
+        if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
         await remove(ref(db, `chungsuc/${b.dataset.del}`));
         toast("Đã xóa", "ok");
       };
