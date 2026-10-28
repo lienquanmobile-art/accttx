@@ -121,21 +121,42 @@ export function keyRemain(k) {
   return Math.max(0, k.activatedAt + dur - Date.now() / 1000);
 }
 
-/* ===== Lấy tên thiết bị tự động ===== */
+/* ===== Lấy tên thiết bị tự động (Cố gắng bắt cả tên dòng máy) ===== */
 export function getDeviceName() {
   const ua = navigator.userAgent;
-  let os = "Unknown OS";
-  if (ua.indexOf("Win") !== -1) os = "Windows";
-  if (ua.indexOf("Mac") !== -1) os = "MacOS";
-  if (ua.indexOf("Linux") !== -1) os = "Linux";
-  if (ua.indexOf("Android") !== -1) os = "Android";
-  if (ua.indexOf("like Mac") !== -1) os = "iOS";
-  
-  let browser = "Unknown Browser";
-  if (ua.indexOf("Chrome") !== -1) browser = "Chrome";
-  if (ua.indexOf("Firefox") !== -1) browser = "Firefox";
-  if (ua.indexOf("Safari") !== -1) browser = "Safari";
-  if (ua.indexOf("Edge") !== -1) browser = "Edge";
-  
+  let os = "Không xác định";
+  let browser = "Không xác định";
+
+  // 1. Nhận diện Hệ điều hành & Tên dòng máy (Brand)
+  if (/android/i.test(ua)) {
+    os = "Android";
+    // Cố gắng lấy tên hãng máy (Xiaomi, Samsung, Oppo...)
+    if (/Mi|Redmi|POCO/i.test(ua)) os = "Xiaomi";
+    else if (/SM-/i.test(ua)) os = "Samsung";
+    else if (/CPH|OPPO/i.test(ua)) os = "Oppo";
+    else if (/vivo/i.test(ua)) os = "Vivo";
+    else if (/Huawei/i.test(ua)) os = "Huawei";
+    else if (/Pixel/i.test(ua)) os = "Google Pixel";
+  } else if (/iPad|iPhone|iPod/.test(ua)) {
+    os = "iOS";
+  } else if (/Win/i.test(ua)) {
+    os = "Windows";
+  } else if (/Mac/i.test(ua)) {
+    os = "MacOS";
+  } else if (/Linux/i.test(ua)) {
+    os = "Linux";
+  }
+
+  // 2. Nhận diện Trình duyệt
+  if (/CocCoc/i.test(ua)) browser = "Cốc Cốc";
+  else if (/Zalo/i.test(ua)) browser = "Zalo";
+  else if (/Edg/i.test(ua)) browser = "Edge";
+  else if (/OPR|Opera/i.test(ua)) browser = "Opera";
+  else if (/SamsungBrowser/i.test(ua)) browser = "Samsung Internet";
+  else if (/Chrome/i.test(ua)) browser = "Chrome";
+  else if (/CriOS/i.test(ua)) browser = "Chrome (iOS)";
+  else if (/Firefox|FxiOS/i.test(ua)) browser = "Firefox";
+  else if (/Safari/i.test(ua)) browser = "Safari";
+
   return `${os} - ${browser}`;
 }
