@@ -192,7 +192,7 @@ function renderKeyListPane() {
   pane.innerHTML = `
     <div class="panel">
       <h3>Danh sách key đã tạo</h3>
-      <div id="keyListContainer"></div>
+      <div id="keyListContainer" style="display:flex; flex-direction:column; gap:15px;"></div>
     </div>
   `;
 
@@ -206,7 +206,7 @@ function renderKeyListPane() {
       return;
     }
 
-    // Render dạng Card để hiển thị đúng cú pháp xuống dòng
+    // Render dạng Card, nhưng sửa lại CSS để hiển thị đúng cấu trúc
     container.innerHTML = list.map((k) => {
       const st = keyStatus(k);
       const remain = keyRemain(k);
@@ -219,25 +219,47 @@ function renderKeyListPane() {
       const devCount = Object.keys(devs).length;
       const maxDev = k.maxDevices === -1 ? "∞" : (k.maxDevices || 1);
 
+      // Xử lý hiển thị danh sách thiết bị
       let devListHtml = "";
       if (devCount > 0) {
         devListHtml = Object.entries(devs).map(([id, d]) => 
-          `<span style="font-size:0.75rem; color:#8ab; display:block;">+ ${d.name} (ID: ${id.slice(0,8)}...)</span>`
+          `<div style="font-size:0.8rem; color:#00f0ff; margin-top:4px; padding-left:10px;">↳ ${d.name} (ID: ${id.slice(0,8)}...)</div>`
         ).join("");
+      } else {
+        devListHtml = `<div style="font-size:0.8rem; color:#8ab; margin-top:4px; padding-left:10px;">↳ Chưa có thiết bị nào</div>`;
       }
 
+      // Sửa lại khung hiển thị: Dùng display: block, canh trái
       return `
-        <div class="result-box" style="max-width: 100%; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
-          <div>Tên key : <span style="color:#fff; font-weight:600;">${k.name}</span></div>
-          <div>Thời gian : <span style="color:#fff; font-weight:600;">${timeTxt}</span></div>
-          <div>Số lượng thiết bị : <span style="color:#fff; font-weight:600;">${devCount}/${maxDev}</span></div>
+        <div class="result-box" style="max-width: 100%; display: block; padding: 15px 20px;">
+          <div style="margin-bottom: 6px;">Tên key : <span style="color:#fff; font-weight:600;">${k.name}</span></div>
+          <div style="margin-bottom: 6px;">Thời gian : <span style="color:#fff; font-weight:600;">${timeTxt}</span></div>
+          <div style="margin-bottom: 6px;">Số lượng thiết bị : <span style="color:#fff; font-weight:600;">${devCount}/${maxDev}</span></div>
           ${devListHtml}
-          <div>Private key : <span style="color:#fff; font-weight:600; font-family:monospace;">${k.key}</span></div>
-          <div>Số acc đã lấy : <span style="color:#fff; font-weight:600;">${k.usedAcc || 0}/${maxTxt}</span></div>
-          <div>Trạng Thái : <span class="status ${st}">${stTxt}</span></div>
+          <div style="margin-bottom: 6px; margin-top:8px;">Private key : <span style="color:#fff; font-weight:600; font-family:monospace;">${k.key}</span></div>
+          <div style="margin-bottom: 6px;">Số acc đã lấy : <span style="color:#fff; font-weight:600;">${k.usedAcc || 0}/${maxTxt}</span></div>
+          <div>Trạng Thái : <span class="status ${st}" style="margin-left:5px;">${stTxt}</span></div>
+          
+          <div style="margin-top: 15px; border-top: 1px dashed rgba(0,240,255,0.3); padding-top: 10px; display: flex; gap: 10px;">
+            <button class="copy-btn" data-copy="${k.key}">Sao chép Key</button>
+            <button class="copy-btn" style="border-color:var(--red); color:var(--red);" data-del="${k.key}">Xóa Key</button>
+          </div>
         </div>
       `;
     }).join("");
+
+    // Gắn sự kiện Copy & Xóa
+    container.querySelectorAll("[data-copy]").forEach(btn => {
+      btn.onclick = () => copyText(btn.dataset.copy);
+    });
+    container.querySelectorAll("[data-del]").forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm("Bạn có chắc chắn muốn xóa key này? Người dùng sẽ không thể đăng nhập được nữa.")) return;
+        await remove(ref(db, `keys/${btn.dataset.del}`));
+        await writeLog("owner", "Xóa key khách", btn.dataset.del);
+        toast("Đã xóa key", "ok");
+      };
+    });
   });
 }
 
