@@ -153,3 +153,21 @@ tr:hover td { background: rgba(0,240,255,.04); }
   position: relative;
   z-index: 1;
 }
+/* CSS cho nút chuyển đổi Trạng thái */
+.btn-lock {
+  border-color: var(--red) !important;
+  color: var(--red) !important;
+}
+.btn-lock:hover {
+  box-shadow: 0 0 12px var(--red) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+.btn-open {
+  border-color: var(--green) !important;
+  color: var(--green) !important;
+}
+.btn-open:hover {
+  box-shadow: 0 0 12px var(--green) !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+}
