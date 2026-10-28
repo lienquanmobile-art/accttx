@@ -1,17 +1,15 @@
 import { db, ref, get, update } from "./firebase-config.js";
-import { session, toast, ensureOwner, KEY_DURATIONS, writeLog } from "./utils.js";
+import { session, toast, ensureOwner, KEY_DURATIONS, writeLog, getDeviceFingerprint, getDeviceName } from "./utils.js";
 
-/* Đăng nhập bằng username/password */
 export async function loginWithPassword(username, password) {
   username = (username || "").trim();
   if (!username || !password) return { ok: false, msg: "Nhập đủ thông tin" };
-  if (!db) return { ok: false, msg: "Firebase chưa khởi tạo (kiểm tra databaseURL)" };
+  if (!db) return { ok: false, msg: "Firebase chưa khởi tạo" };
 
   let snap;
   try {
     snap = await get(ref(db, `accounts/${username}`));
   } catch (e) {
-    console.error(e);
     return { ok: false, msg: "Không đọc được DB: " + e.message };
   }
 
@@ -22,11 +20,10 @@ export async function loginWithPassword(username, password) {
   return finishLogin(acc, username);
 }
 
-/* Đăng nhập bằng private key */
 export async function loginWithKey(key) {
   key = (key || "").trim();
   if (!key) return { ok: false, msg: "Nhập private key" };
-  if (!db) return { ok: false, msg: "Firebase chưa khởi tạo (kiểm tra databaseURL)" };
+  if (!db) return { ok: false, msg: "Firebase chưa khởi tạo" };
 
   try {
     // 1) Thử key của account (owner/admin/user)
@@ -50,12 +47,43 @@ export async function loginWithKey(key) {
       return { ok: false, msg: "Key không tồn tại hoặc đã hết hạn" };
     }
 
-    // Kích hoạt lần đầu (chỉ set nếu chưa có, tránh ghi đè khi login đồng thời)
+    // Kích hoạt lần đầu
     if (!kData.activatedAt) {
       const now = Math.floor(Date.now() / 1000);
       await update(ref(db, `keys/${key}`), { activatedAt: now });
       kData.activatedAt = now;
     }
+
+    // ====== LOGIC KIỂM TRA THIẾT BỊ ======
+    const fingerprint = getDeviceFingerprint();
+    const deviceName = getDeviceName();
+    
+    // Nếu là key mới tinh (chưa có mảng devices), khởi tạo mảng rỗng
+    let devices = kData.devices || [];
+    
+    // Kiểm tra xem thiết bị này đã đăng nhập chưa
+    const isDeviceExist = devices.some(d => d.fingerprint === fingerprint);
+
+    if (!isDeviceExist) {
+      // Nếu thiết bị mới, kiểm tra xem đã đạt giới hạn chưa
+      const maxDevices = kData.maxDevices === -1 ? Infinity : (kData.maxDevices || 1); // Mặc định 1 nếu không set
+      if (devices.length >= maxDevices) {
+        return { ok: false, msg: `Key đã đạt giới hạn ${maxDevices} thiết bị. Không thể đăng nhập!` };
+      }
+      
+      // Thêm thiết bị mới vào mảng
+      const newDevice = {
+        fingerprint,
+        name: deviceName,
+        loginTime: new Date().toISOString()
+      };
+      devices.push(newDevice);
+      
+      // Cập nhật lại mảng devices lên Firebase
+      await update(ref(db, `keys/${key}`), { devices });
+      kData.devices = devices; // Cập nhật lại data local để truyền vào session
+    }
+    // =====================================
 
     const guestAcc = {
       username: `guest_${key.slice(-4)}`,
