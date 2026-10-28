@@ -4,7 +4,6 @@ import {
   KEY_DURATIONS, listenKeys, keyStatus, keyRemain,
 } from "./utils.js";
 
-let currentKeys = [];
 let unsubKeys = null;
 
 export function renderOwner(user) {
@@ -41,7 +40,7 @@ function renderTab(tab, user) {
   if (tab === "log")    bindLog();
 }
 
-/* ============ TAB 1: TẠO TÀI KHOẢN ============ */
+/* ===== TAB 1 ===== */
 function tabCreateAccount(user) {
   const onlyUser = user.role === "admin";
   return `
@@ -96,7 +95,7 @@ function bindCreateAccount(user) {
   };
 }
 
-/* ============ TAB 2: KEYS ============ */
+/* ===== TAB 2 ===== */
 function tabKeys(user) {
   return `
     <div class="sub-tabs">
@@ -139,13 +138,13 @@ function renderKeyCreatePane() {
         <option value="1 năm">1 năm</option>
       </select>
       <label>Số lượng thiết bị</label>
-      <select id="k_device">
+      <select id="k_maxDevices">
         <option value="1">1 thiết bị</option>
         <option value="3">3 thiết bị</option>
         <option value="5">5 thiết bị</option>
         <option value="10">10 thiết bị</option>
         <option value="30">30 thiết bị</option>
-        <option value="-1">Không giới hạn thiết bị</option>
+        <option value="-1">Không giới hạn</option>
       </select>
       <button class="btn-neon full" id="k_create">Tạo</button>
       <div id="k_result"></div>
@@ -155,27 +154,29 @@ function renderKeyCreatePane() {
   document.getElementById("k_create").onclick = async () => {
     const name = document.getElementById("k_name").value.trim();
     const duration = document.getElementById("k_duration").value;
-    const maxDevices = Number(document.getElementById("k_device").value);
+    const maxDevices = parseInt(document.getElementById("k_maxDevices").value);
     if (!name) return toast("Nhập tên key", "error");
 
     const key = await genGuestKey();
     const maxAcc = KEY_DURATIONS[duration].maxAcc;
     await set(ref(db, `keys/${key}`), {
-      name, duration, key, maxDevices,
+      name, duration, key,
       maxAcc: maxAcc === Infinity ? -1 : maxAcc,
       usedAcc: 0,
+      maxDevices: maxDevices,
+      devices: {},
       activatedAt: null,
-      devices: [], // Mảng lưu thiết bị
       createdAt: new Date().toISOString(),
     });
-    await writeLog("owner", "Tạo key khách", `${name} - ${duration} - ${maxDevices} thiết bị`);
+    await writeLog("owner", "Tạo key khách", `${name} - ${duration} - ${maxDevices}TB`);
 
     const sec = KEY_DURATIONS[duration].sec;
+    const devTxt = maxDevices === -1 ? "Không giới hạn" : maxDevices + " thiết bị";
     document.getElementById("k_result").innerHTML = `
       <div class="result-box">
         <div class="row"><span>Tên Key</span><span>${name}</span></div>
         <div class="row"><span>Thời gian</span><span>${fmtTime(sec)}</span></div>
-        <div class="row"><span>Số lượng thiết bị</span><span>${maxDevices === -1 ? "Không giới hạn" : maxDevices}</span></div>
+        <div class="row"><span>Số lượng thiết bị</span><span>0/${devTxt}</span></div>
         <div class="row"><span>Private key</span><span>${key}</span></div>
         <button class="copy-btn" data-copy="${key}">Sao chép</button>
       </div>
@@ -201,92 +202,46 @@ function renderKeyListPane() {
     const container = document.getElementById("keyListContainer");
     if (!container) return;
     if (!list.length) {
-      container.innerHTML = `<div style="text-align:center;color:#8ab;padding:20px">Chưa có key nào</div>`;
+      container.innerHTML = `<p style="text-align:center;color:#8ab;padding:20px;">Chưa có key nào</p>`;
       return;
     }
 
-    // Render theo đúng cú pháp yêu cầu (dạng khối, có xuống dòng)
+    // Render dạng Card để hiển thị đúng cú pháp xuống dòng
     container.innerHTML = list.map((k) => {
       const st = keyStatus(k);
       const remain = keyRemain(k);
       const durSec = KEY_DURATIONS[k.duration]?.sec || 0;
       const maxTxt = k.maxAcc === -1 ? "∞" : k.maxAcc;
       const timeTxt = st === "active" ? fmtTime(remain) : fmtTime(durSec);
-      
       const stTxt = st === "inactive" ? "Chưa kích hoạt" : st === "active" ? "Đã kích hoạt" : "Hết hạn";
-      const stClass = st === "inactive" ? "inactive" : st === "active" ? "active" : "expired";
       
-      const devices = k.devices || [];
+      const devs = k.devices || {};
+      const devCount = Object.keys(devs).length;
       const maxDev = k.maxDevices === -1 ? "∞" : (k.maxDevices || 1);
 
+      let devListHtml = "";
+      if (devCount > 0) {
+        devListHtml = Object.entries(devs).map(([id, d]) => 
+          `<span style="font-size:0.75rem; color:#8ab; display:block;">+ ${d.name} (ID: ${id.slice(0,8)}...)</span>`
+        ).join("");
+      }
+
       return `
-        <div class="result-box" style="max-width: 100%; margin-bottom: 16px; position: relative;">
-          <div class="row"><span>Tên key :</span><span>${k.name}</span></div>
-          <div class="row"><span>Thời gian :</span><span>${timeTxt}</span></div>
-          <div class="row"><span>Số lượng thiết bị :</span><span>${devices.length}/${maxDev}</span></div>
-          <div class="row"><span>Private key :</span><span style="font-family:monospace">${k.key}</span></div>
-          <div class="row"><span>Trạng Thái :</span><span class="status ${stClass}">${stTxt}</span></div>
-          
-          <div style="margin-top: 12px; border-top: 1px dashed rgba(0,240,255,.3); padding-top: 10px; display: flex; gap: 10px;">
-            <button class="copy-btn" data-view-devices="${k.key}" style="margin-top:0;">Xem Thiết Bị</button>
-            <button class="copy-btn" style="margin-top:0; border-color:var(--red); color:var(--red);" data-del-key="${k.key}">Xóa Key</button>
-          </div>
+        <div class="result-box" style="max-width: 100%; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+          <div>Tên key : <span style="color:#fff; font-weight:600;">${k.name}</span></div>
+          <div>Thời gian : <span style="color:#fff; font-weight:600;">${timeTxt}</span></div>
+          <div>Số lượng thiết bị : <span style="color:#fff; font-weight:600;">${devCount}/${maxDev}</span></div>
+          ${devListHtml}
+          <div>Private key : <span style="color:#fff; font-weight:600; font-family:monospace;">${k.key}</span></div>
+          <div>Số acc đã lấy : <span style="color:#fff; font-weight:600;">${k.usedAcc || 0}/${maxTxt}</span></div>
+          <div>Trạng Thái : <span class="status ${st}">${stTxt}</span></div>
         </div>
       `;
     }).join("");
-
-    // Xử lý nút Xem Thiết Bị
-    container.querySelectorAll("[data-view-devices]").forEach((b) => {
-      b.onclick = () => {
-        const keyId = b.dataset.viewDevices;
-        const keyData = list.find(x => x.key === keyId);
-        if (!keyData) return;
-
-        const devs = keyData.devices || [];
-        let html = `
-          <div class="panel" style="margin-top: 20px;">
-            <h3>Thiết bị đã đăng nhập (Key: ${keyId})</h3>
-            <table>
-              <thead><tr><th>Tên Thiết Bị</th><th>Mã Vân Tay</th><th>Thời Gian Đăng Nhập</th></tr></thead>
-              <tbody>
-        `;
-        if (!devs.length) {
-          html += `<tr><td colspan="3" style="text-align:center;color:#8ab">Chưa có thiết bị nào đăng nhập</td></tr>`;
-        } else {
-          html += devs.map(d => `
-            <tr>
-              <td>${d.name}</td>
-              <td style="font-family:monospace;color:#8ab">${d.fingerprint}</td>
-              <td>${new Date(d.loginTime).toLocaleString("vi-VN")}</td>
-            </tr>
-          `).join("");
-        }
-        html += `</tbody></table></div>`;
-        
-        // Xóa bảng cũ (nếu có) và chèn bảng mới
-        const oldTable = document.getElementById("deviceTableContainer");
-        if (oldTable) oldTable.remove();
-        
-        const div = document.createElement("div");
-        div.id = "deviceTableContainer";
-        div.innerHTML = html;
-        container.appendChild(div);
-      };
-    });
-
-    // Xử lý nút Xóa Key
-    container.querySelectorAll("[data-del-key]").forEach((b) => {
-      b.onclick = async () => {
-        if (!confirm("Bạn có chắc chắn muốn xóa key này? Khách đang dùng sẽ bị văng ra.")) return;
-        await remove(ref(db, `keys/${b.dataset.delKey}`));
-        await writeLog("owner", "Xóa key khách", b.dataset.delKey);
-        toast("Đã xóa key", "ok");
-      };
-    });
   });
 }
 
-/* ============ TAB 3: LIÊN QUÂN ============ */
+/* ===== TAB 3 ===== */
 function tabLienQuan() {
   return `
     <div class="panel">
@@ -322,7 +277,7 @@ function bindLienQuan() {
     const id = Date.now() + "_" + rand8();
     await set(ref(db, `lienquan/${id}`), {
       username, password, tuong, skin, 
-      status: "open", // Mặc định luôn là Mở
+      status: "open",
       createdAt: new Date().toISOString(),
     });
     await writeLog("owner", "Thêm acc Liên Quân", username);
@@ -381,7 +336,7 @@ function bindLienQuan() {
   });
 }
 
-/* ============ TAB 4: CHUNG SỨC ============ */
+/* ===== TAB 4 ===== */
 function tabChungSuc() {
   return `
     <div class="panel">
@@ -440,7 +395,7 @@ function bindChungSuc() {
   });
 }
 
-/* ============ TAB 5: LOG ============ */
+/* ===== TAB 5 ===== */
 function tabLog() {
   return `
     <div class="panel">
