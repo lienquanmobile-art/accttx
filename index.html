@@ -50,30 +50,27 @@
 
   <!-- ===== DASHBOARD ===== -->
   <div id="dashboardScreen" class="screen">
-    <!-- Topbar mới: Căn đều 2 bên -->
+    <!-- Topbar: Logo bên trái, User/Logout bên phải -->
     <header class="topbar">
       <h2 class="logo neon-text">BLACK<span>SYSTEM</span></h2>
       
-      <!-- Cụm bên phải -->
       <div class="user-info">
         <span id="currentUserLabel"></span>
         <span id="currentRoleBadge" class="badge"></span>
         <span id="keyTimer" class="key-timer hidden">Key: 00:00:00</span>
         
-        <!-- Nút Điều Hướng -->
+        <!-- Cụm nút điều hướng -->
         <div id="navTabs" class="nav-tabs hidden">
-          <button class="nav-btn active" data-target="home">Trang Chủ</button>
-          <button id="navAdminBtn" class="nav-btn hidden" data-target="admin">Quản Lí</button>
+          <button class="nav-btn active" id="navHomeBtn">Trang Chủ</button>
+          <button class="nav-btn hidden" id="navAdminBtn">Quản Lí</button>
         </div>
 
         <button id="btnLogout" class="btn-neon small">Đăng xuất</button>
       </div>
     </header>
 
-    <!-- Khu vực nội dung -->
     <div class="content">
-      
-      <!-- TRANG CHỦ -->
+      <!-- 1. TRANG CHỦ -->
       <div id="homeView" class="view-pane active">
         <div class="panel-center">
           <h2 class="neon-text">Nhận Acc Cộng Đồng</h2>
@@ -85,9 +82,8 @@
         </div>
       </div>
 
-      <!-- TRANG QUẢN LÍ -->
+      <!-- 2. TRANG QUẢN LÍ -->
       <div id="adminView" class="view-pane hidden">
-        <!-- Các nút con của trang Quản Lí -->
         <div id="adminSubTabs" class="main-tabs" style="margin-bottom: 20px;">
           <button class="main-tab active" data-sub="create">Tạo tài khoản</button>
           <button class="main-tab" data-sub="keys">Quản lý Key</button>
@@ -95,15 +91,12 @@
           <button class="main-tab" data-sub="cs">Acc Chung sức</button>
           <button class="main-tab" id="subLogBtn" data-sub="log">Log hệ thống</button>
         </div>
-        
-        <!-- Nội dung chi tiết -->
         <div id="adminContent"></div>
       </div>
-
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=10"></script>
 </body>
 </html>
