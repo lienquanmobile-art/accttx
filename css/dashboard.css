@@ -1,72 +1,258 @@
-/* ===== MENU DROPDOWN QUẢN LÝ ===== */
-.dropdown {
-  position: relative;
-  display: inline-block;
+/* ===== TOPBAR CHUẨN FLEXBOX ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Đẩy 2 bên ra xa */
+  padding: 12px 24px;
+  background: rgba(5,6,13,.85);
+  border-bottom: 1px solid rgba(0,240,255,.25);
+  box-shadow: 0 2px 18px rgba(0,240,255,.15);
 }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: rgba(5, 6, 13, 0.95);
-  min-width: 180px;
-  border: 1px solid var(--neon-cyan);
+.topbar .logo {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== THANH ĐIỀU HƯỚNG (Trang chủ / Quản lí) ===== */
+.nav-tabs {
+  display: flex;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(0,240,255,.3);
   border-radius: 8px;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-  z-index: 100;
-  backdrop-filter: blur(10px);
   overflow: hidden;
-  margin-top: 8px;
+  margin-right: 10px;
 }
 
-.dropdown-content a {
-  color: var(--text);
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  font-size: 0.9rem;
-  border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: #8ab;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
   transition: 0.2s;
 }
 
-.dropdown-content a:hover {
-  background-color: rgba(0, 240, 255, 0.15);
+.nav-btn:hover {
+  background: rgba(0,240,255,.1);
   color: #fff;
-  padding-left: 20px;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
+.nav-btn.active {
+  background: rgba(0,240,255,.2);
+  color: #fff;
+  box-shadow: inset 0 0 10px rgba(0,240,255,.3);
 }
 
-/* Hiệu ứng cho các Tab nội dung */
-.tab-pane {
+/* ===== CÁC TAB CON TRONG TRANG QUẢN LÍ ===== */
+.main-tabs {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,240,255,.15);
+  flex-wrap: wrap;
+}
+
+.main-tab {
+  padding: 10px 18px;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(0,240,255,.3);
+  border-radius: 8px;
+  color: #8ab;
+  cursor: pointer;
+  font-weight: 600;
+  transition: .2s;
+  font-size: 0.85rem;
+}
+
+.main-tab:hover {
+  color: #dff;
+  border-color: var(--neon-cyan);
+}
+
+.main-tab.active {
+  color: #fff;
+  background: rgba(0,240,255,.15);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0,240,255,.3);
+}
+
+/* ===== HIỆU ỨNG CHUYỂN TRANG ===== */
+.view-pane {
   display: none;
   animation: fadeIn 0.3s ease-in-out;
 }
-.tab-pane.active {
+
+.view-pane.active {
   display: block;
 }
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Chỉnh lại khu vực content một chút để đẹp hơn */
-#dashboardContent {
-  padding: 30px;
+/* ===== PANEL & CONTENT CƠ BẢN ===== */
+.content {
+  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
 }
-/* CSS cho việc chuyển đổi trang (View) */
-.view-pane {
-  display: none;
-  animation: fadeIn 0.3s ease-in-out;
+
+.panel {
+  background: rgba(10,15,31,.7);
+  border: 1px solid rgba(0,240,255,.25);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 22px;
+  box-shadow: 0 0 12px rgba(0,240,255,.12);
 }
-.view-pane.active {
-  display: block;
+
+.panel h3 {
+  margin-bottom: 16px;
+  color: var(--neon-cyan);
+  letter-spacing: 1px;
 }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+
+.panel-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-row > * {
+  flex: 1;
+  min-width: 140px;
+}
+
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.sub-tab {
+  padding: 9px 18px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(0,240,255,.3);
+  border-radius: 8px;
+  color: #8ab;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.sub-tab.active {
+  color: #fff;
+  background: rgba(0,240,255,.15);
+  border-color: var(--neon-cyan);
+}
+
+/* ===== BẢNG ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+
+th, td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0,240,255,.12);
+}
+
+th {
+  color: var(--neon-cyan);
+  font-size: .78rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+tr:hover td {
+  background: rgba(0,240,255,.04);
+}
+
+/* ===== KẾT QUẢ / CARD ===== */
+.result-box, .acc-card {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(0,240,255,.05);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 10px;
+  box-shadow: 0 0 14px rgba(0,240,255,.25);
+  font-family: monospace;
+  font-size: .88rem;
+  line-height: 1.9;
+  width: 100%;
+  max-width: 460px;
+}
+
+.result-box .row, .acc-card .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.result-box .row span:first-child, .acc-card .row span:first-child { color: #8ab; }
+.result-box .row span:last-child, .acc-card .row span:last-child { color: #fff; font-weight: 600; }
+
+.copy-btn {
+  margin-top: 10px;
+  padding: 7px 16px;
+  background: rgba(0,240,255,.15);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 8px;
+  color: #dff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.copy-btn:hover { box-shadow: 0 0 12px var(--neon-cyan); }
+
+.note {
+  color: var(--yellow);
+  font-size: .8rem;
+  margin-top: 8px;
+}
+
+.btn-lock {
+  border-color: var(--red) !important;
+  color: var(--red) !important;
+}
+.btn-lock:hover {
+  box-shadow: 0 0 12px var(--red) !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+.btn-open {
+  border-color: var(--green) !important;
+  color: var(--green) !important;
+}
+.btn-open:hover {
+  box-shadow: 0 0 12px var(--green) !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+}
+
+@media (max-width: 640px) {
+  .content { padding: 14px; }
+  .panel { padding: 14px; }
+  th, td { font-size: .76rem; padding: 8px 5px; }
+  .topbar { flex-direction: column; gap: 10px; }
+  .user-info { flex-wrap: wrap; justify-content: center; }
 }
