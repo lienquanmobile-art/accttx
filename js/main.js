@@ -2,11 +2,19 @@ import { ensureOwner, session, toast } from "./utils.js";
 import { loginWithPassword, loginWithKey } from "./auth.js";
 import { renderAdminTab } from "./owner.js";
 import { renderUserGuest } from "./user.js";
-import { db, ref, push, onValue, set, remove, onDisconnect, get, update } from "./firebase-config.js";
+import { db, ref, push, onValue, set, remove, get, update } from "./firebase-config.js";
+
+// Tự động import onDisconnect nếu có để tránh crash
+let onDisconnectFunc = null;
+try {
+  const fbConfig = await import("./firebase-config.js");
+  if (fbConfig.onDisconnect) onDisconnectFunc = fbConfig.onDisconnect;
+} catch (e) {
+  console.log("Không tìm thấy onDisconnect, bỏ qua tính năng tự động thoát khi tắt tab.");
+}
 
 /* ===== Biến toàn cục cho Chat ===== */
-let currentRoomId = null; // null = Chat Chung
-let currentRoomName = "Chat Chung";
+let currentRoomId = null; 
 let chatUnsubscribe = null;
 let roomUnsubscribe = null;
 
@@ -21,50 +29,59 @@ async function initDashboard(user) {
   const subLogBtn = document.getElementById("subLogBtn");
 
   // Reset giao diện
-  accView.classList.remove("hidden"); accView.classList.add("active");
-  chatView.classList.add("hidden"); chatView.classList.remove("active");
-  adminView.classList.add("hidden"); adminView.classList.remove("active");
-  navAccBtn.classList.add("active");
-  navChatBtn.classList.remove("active");
-  navAdminBtn.classList.remove("active");
+  if (accView) { accView.classList.remove("hidden"); accView.classList.add("active"); }
+  if (chatView) { chatView.classList.add("hidden"); chatView.classList.remove("active"); }
+  if (adminView) { adminView.classList.add("hidden"); adminView.classList.remove("active"); }
+  if (navAccBtn) navAccBtn.classList.add("active");
+  if (navChatBtn) navChatBtn.classList.remove("active");
+  if (navAdminBtn) navAdminBtn.classList.remove("active");
 
   // Phân quyền
-  if (user.role === "owner" || user.role === "admin") {
-    navAdminBtn.classList.remove("hidden");
-    if (user.role === "admin") subLogBtn.classList.add("hidden");
-    else subLogBtn.classList.remove("hidden");
-  } else {
-    navAdminBtn.classList.add("hidden");
+  if (navAdminBtn) {
+    if (user.role === "owner" || user.role === "admin") {
+      navAdminBtn.classList.remove("hidden");
+      if (subLogBtn) {
+        if (user.role === "admin") subLogBtn.classList.add("hidden");
+        else subLogBtn.classList.remove("hidden");
+      }
+    } else {
+      navAdminBtn.classList.add("hidden");
+    }
   }
 
   // Sự kiện chuyển Tab
-  navAccBtn.onclick = () => {
-    navAccBtn.classList.add("active"); navChatBtn.classList.remove("active"); navAdminBtn.classList.remove("active");
-    accView.classList.remove("hidden"); accView.classList.add("active");
-    chatView.classList.add("hidden"); chatView.classList.remove("active");
-    adminView.classList.add("hidden"); adminView.classList.remove("active");
-    leaveRoom(user); // Thoát phòng nếu đang chat
-  };
+  if (navAccBtn) {
+    navAccBtn.onclick = () => {
+      navAccBtn.classList.add("active"); navChatBtn.classList.remove("active"); navAdminBtn.classList.remove("active");
+      accView.classList.remove("hidden"); accView.classList.add("active");
+      chatView.classList.add("hidden"); chatView.classList.remove("active");
+      adminView.classList.add("hidden"); adminView.classList.remove("active");
+      leaveRoom(user);
+    };
+  }
 
-  navChatBtn.onclick = () => {
-    navChatBtn.classList.add("active"); navAccBtn.classList.remove("active"); navAdminBtn.classList.remove("active");
-    chatView.classList.remove("hidden"); chatView.classList.add("active");
-    accView.classList.add("hidden"); accView.classList.remove("active");
-    adminView.classList.add("hidden"); adminView.classList.remove("active");
-    showChatMenu(); // Quay về menu chat
-  };
+  if (navChatBtn) {
+    navChatBtn.onclick = () => {
+      navChatBtn.classList.add("active"); navAccBtn.classList.remove("active"); navAdminBtn.classList.remove("active");
+      chatView.classList.remove("hidden"); chatView.classList.add("active");
+      accView.classList.add("hidden"); accView.classList.remove("active");
+      adminView.classList.add("hidden"); adminView.classList.remove("active");
+      showChatMenu();
+    };
+  }
 
-  navAdminBtn.onclick = () => {
-    navAdminBtn.classList.add("active"); navAccBtn.classList.remove("active"); navChatBtn.classList.remove("active");
-    adminView.classList.remove("hidden"); adminView.classList.add("active");
-    accView.classList.add("hidden"); accView.classList.remove("active");
-    chatView.classList.add("hidden"); chatView.classList.remove("active");
-    leaveRoom(user); // Thoát phòng nếu đang chat
+  if (navAdminBtn) {
+    navAdminBtn.onclick = () => {
+      navAdminBtn.classList.add("active"); navAccBtn.classList.remove("active"); navChatBtn.classList.remove("active");
+      adminView.classList.remove("hidden"); adminView.classList.add("active");
+      accView.classList.add("hidden"); accView.classList.remove("active");
+      chatView.classList.add("hidden"); chatView.classList.remove("active");
+      leaveRoom(user);
 
-    // Load tab mặc định
-    const firstSubTab = document.querySelector('[data-sub="create"]');
-    if (firstSubTab) firstSubTab.click();
-  };
+      const firstSubTab = document.querySelector('[data-sub="create"]');
+      if (firstSubTab) firstSubTab.click();
+    };
+  }
 
   // Sự kiện cho các tab con trong Quản Lí
   document.querySelectorAll("#adminSubTabs .main-tab").forEach(btn => {
@@ -79,7 +96,11 @@ async function initDashboard(user) {
   renderUserGuest(user);
 
   // Khởi tạo giao diện Chat
-  initChatUI(user);
+  try {
+    initChatUI(user);
+  } catch (err) {
+    console.error("Lỗi khởi tạo Chat:", err);
+  }
 }
 
 /* ===== LOGIC CHAT ===== */
@@ -91,64 +112,60 @@ function initChatUI(user) {
   const modalJoin = document.getElementById("modalJoinRoom");
   const modalCreate = document.getElementById("modalCreateRoom");
 
-  // 1. Chat Chung
-  btnChatGlobal.onclick = () => enterRoom("global", "Chat Chung", user);
+  if (btnChatGlobal) {
+    btnChatGlobal.onclick = () => enterRoom("global", "Chat Chung", user);
+  }
 
-  // 2. Modal Nhập ID
-  btnJoinRoom.onclick = () => {
-    modalJoin.classList.remove("hidden");
-    document.getElementById("inputJoinRoomId").value = "";
-    document.getElementById("inputJoinRoomId").focus();
-  };
-  document.getElementById("btnCancelJoin").onclick = () => modalJoin.classList.add("hidden");
-  document.getElementById("btnConfirmJoin").onclick = async () => {
-    const id = document.getElementById("inputJoinRoomId").value.trim();
-    if (!id) return toast("Nhập ID phòng", "error");
-    if (!id.startsWith("BLACKCHAT_")) return toast("Sai định dạng mã phòng", "error");
-    
-    // Kiểm tra phòng có tồn tại không
-    const snap = await get(ref(db, `rooms/${id}`));
-    if (!snap.exists()) return toast("Phòng không tồn tại hoặc đã bị xóa", "error");
-    
-    const roomData = snap.val();
-    modalJoin.classList.add("hidden");
-    enterRoom(id, roomData.name, user);
-  };
+  if (btnJoinRoom && modalJoin) {
+    btnJoinRoom.onclick = () => {
+      modalJoin.classList.remove("hidden");
+      document.getElementById("inputJoinRoomId").value = "";
+      document.getElementById("inputJoinRoomId").focus();
+    };
+    document.getElementById("btnCancelJoin").onclick = () => modalJoin.classList.add("hidden");
+    document.getElementById("btnConfirmJoin").onclick = async () => {
+      const id = document.getElementById("inputJoinRoomId").value.trim();
+      if (!id) return toast("Nhập ID phòng", "error");
+      if (!id.startsWith("BLACKCHAT_")) return toast("Sai định dạng mã phòng", "error");
+      
+      const snap = await get(ref(db, `rooms/${id}`));
+      if (!snap.exists()) return toast("Phòng không tồn tại hoặc đã bị xóa", "error");
+      
+      const roomData = snap.val();
+      modalJoin.classList.add("hidden");
+      enterRoom(id, roomData.name, user);
+    };
+  }
 
-  // 3. Modal Tạo Phòng
-  btnCreateRoom.onclick = () => {
-    modalCreate.classList.remove("hidden");
-    document.getElementById("inputCreateRoomName").value = "";
-    document.getElementById("inputCreateRoomName").focus();
-  };
-  document.getElementById("btnCancelCreate").onclick = () => modalCreate.classList.add("hidden");
-  document.getElementById("btnConfirmCreate").onclick = async () => {
-    const name = document.getElementById("inputCreateRoomName").value.trim();
-    if (!name) return toast("Nhập tên phòng", "error");
+  if (btnCreateRoom && modalCreate) {
+    btnCreateRoom.onclick = () => {
+      modalCreate.classList.remove("hidden");
+      document.getElementById("inputCreateRoomName").value = "";
+      document.getElementById("inputCreateRoomName").focus();
+    };
+    document.getElementById("btnCancelCreate").onclick = () => modalCreate.classList.add("hidden");
+    document.getElementById("btnConfirmCreate").onclick = async () => {
+      const name = document.getElementById("inputCreateRoomName").value.trim();
+      if (!name) return toast("Nhập tên phòng", "error");
 
-    // Sinh mã phòng BLACKCHAT_xxxxxx (6 số)
-    const roomId = "BLACKCHAT_" + Math.floor(100000 + Math.random() * 900000);
-    
-    // Lưu phòng vào DB
-    await set(ref(db, `rooms/${roomId}`), {
-      name: name,
-      owner: user.username,
-      createdAt: Date.now(),
-      members: { [user.username]: true }
-    });
-    
-    modalCreate.classList.add("hidden");
-    toast(`Đã tạo phòng: ${roomId}`, "ok");
-    
-    // Hiển thị danh sách phòng
-    renderMyRooms(user);
-    
-    // Tự động vào phòng
-    enterRoom(roomId, name, user);
-  };
+      const roomId = "BLACKCHAT_" + Math.floor(100000 + Math.random() * 900000);
+      
+      await set(ref(db, `rooms/${roomId}`), {
+        name: name,
+        owner: user.username,
+        createdAt: Date.now(),
+        members: { [user.username]: true }
+      });
+      
+      modalCreate.classList.add("hidden");
+      toast(`Đã tạo phòng: ${roomId}`, "ok");
+      
+      renderMyRooms(user);
+      enterRoom(roomId, name, user);
+    };
+  }
 }
 
-/* ===== VÀO PHÒNG CHAT ===== */
 async function enterRoom(roomId, roomName, user) {
   document.getElementById("chatMenu").classList.add("hidden");
   document.getElementById("chatInterface").classList.remove("hidden");
@@ -156,13 +173,10 @@ async function enterRoom(roomId, roomName, user) {
   document.getElementById("chatRoomId").textContent = roomId === "global" ? "" : `(ID: ${roomId})`;
   
   currentRoomId = roomId;
-  currentRoomName = roomName;
 
-  // Gắn sự kiện Gửi
   const chatInput = document.getElementById("chatInput");
   const chatSendBtn = document.getElementById("chatSendBtn");
   
-  // Xóa sự kiện cũ (nếu có)
   chatSendBtn.onclick = null;
   chatInput.onkeydown = null;
 
@@ -171,8 +185,7 @@ async function enterRoom(roomId, roomName, user) {
     if (!text) return;
     chatInput.value = "";
     
-    // Lấy màu theo Role
-    let color = "#facc15"; // Guest
+    let color = "#facc15";
     if (user.role === "owner") color = "#ff00d4";
     else if (user.role === "admin") color = "#00f0ff";
     else if (user.role === "user") color = "#22c55e";
@@ -190,19 +203,18 @@ async function enterRoom(roomId, roomName, user) {
   chatSendBtn.onclick = sendMsg;
   chatInput.onkeydown = (e) => { if (e.key === "Enter") sendMsg(); };
 
-  // Nếu là phòng riêng, cập nhật member
   if (roomId !== "global") {
     await set(ref(db, `rooms/${roomId}/members/${user.username}`), true);
     
-    // Xử lý khi user đóng tab / F5 (rời phòng đột ngột)
-    const memberRef = ref(db, `rooms/${roomId}/members/${user.username}`);
-    onDisconnect(memberRef).remove();
+    // Nếu có hàm onDisconnect thì dùng
+    if (onDisconnectFunc) {
+      const memberRef = ref(db, `rooms/${roomId}/members/${user.username}`);
+      onDisconnectFunc(memberRef).remove();
+    }
     
-    // Lắng nghe số thành viên
     if (roomUnsubscribe) roomUnsubscribe();
     roomUnsubscribe = onValue(ref(db, `rooms/${roomId}`), (snap) => {
       if (!snap.exists()) {
-        // Phòng bị xóa -> tự động out
         leaveRoom(user);
         return;
       }
@@ -210,7 +222,6 @@ async function enterRoom(roomId, roomName, user) {
       const memberCount = data.members ? Object.keys(data.members).length : 0;
       document.getElementById("chatMemberCount").textContent = `(${memberCount} thành viên)`;
       
-      // Nếu phòng trống (không còn ai), xóa phòng và xóa tin nhắn
       if (memberCount === 0) {
         remove(ref(db, `rooms/${roomId}`));
         remove(ref(db, `chats/${roomId}`));
@@ -220,7 +231,6 @@ async function enterRoom(roomId, roomName, user) {
     document.getElementById("chatMemberCount").textContent = "";
   }
 
-  // Lắng nghe tin nhắn realtime
   if (chatUnsubscribe) chatUnsubscribe();
   chatUnsubscribe = onValue(ref(db, `chats/${roomId}`), (snap) => {
     const data = snap.val() || {};
@@ -240,11 +250,9 @@ async function enterRoom(roomId, roomName, user) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 
-  // Gắn sự kiện Thoát
   document.getElementById("btnLeaveRoom").onclick = () => leaveRoom(user);
 }
 
-/* ===== RỜI PHÒNG ===== */
 async function leaveRoom(user) {
   if (currentRoomId && currentRoomId !== "global") {
     const roomRef = ref(db, `rooms/${currentRoomId}`);
@@ -253,16 +261,13 @@ async function leaveRoom(user) {
     if (snap.exists()) {
       const data = snap.val();
       
-      // Nếu user là chủ phòng -> Giải tán phòng (xóa toàn bộ)
       if (data.owner === user.username) {
         await remove(roomRef);
         await remove(ref(db, `chats/${currentRoomId}`));
         toast("Đã giải tán phòng chat", "ok");
       } else {
-        // Nếu là thành viên thường -> Chỉ xóa tên khỏi danh sách
         await remove(ref(db, `rooms/${currentRoomId}/members/${user.username}`));
         
-        // Kiểm tra nếu không còn ai -> Xóa phòng
         const members = data.members || {};
         delete members[user.username];
         if (Object.keys(members).length === 0) {
@@ -273,22 +278,19 @@ async function leaveRoom(user) {
     }
   }
 
-  // Reset UI
   currentRoomId = null;
   if (chatUnsubscribe) chatUnsubscribe();
   if (roomUnsubscribe) roomUnsubscribe();
   
   document.getElementById("chatMenu").classList.remove("hidden");
   document.getElementById("chatInterface").classList.add("hidden");
-  showChatMenu(); // Cập nhật danh sách phòng
+  showChatMenu();
 }
 
-/* ===== HIỂN THỊ DANH SÁCH PHÒNG ĐÃ THAM GIA ===== */
 async function showChatMenu() {
   const listDiv = document.getElementById("myRoomsList");
   if (!listDiv) return;
 
-  // Quét tất cả các phòng xem user có trong đó không
   const snap = await get(ref(db, "rooms"));
   if (!snap.exists()) {
     listDiv.innerHTML = "";
@@ -317,7 +319,6 @@ async function showChatMenu() {
   listDiv.innerHTML = html || `<p style="color:#8ab; text-align:center;">Bạn chưa tham gia phòng nào.</p>`;
 }
 
-// Hàm toàn cục để nút "Vào" trong list có thể gọi
 window.joinExistingRoom = (id, name) => {
   enterRoom(id, name, session.get());
 };
@@ -336,7 +337,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (u) showDashboard(u);
 });
 
-/* Các hàm Login giữ nguyên như cũ */
+/* Các hàm Login giữ nguyên */
 function bindLoginUI() {
   const tabBar = document.querySelector(".login-tabs");
   if (tabBar) {
