@@ -110,3 +110,48 @@ function bindLoginUI() {
   }
 
   const btnKey = document.getElementById("btnLoginKey");
+  if (btnKey) {
+    btnKey.onclick = async () => {
+      const msg = document.getElementById("loginMsg");
+      const k = document.getElementById("loginKey").value.trim();
+      if (!k) { msg.className = "msg error"; msg.textContent = "Nhập key"; return; }
+      btnKey.disabled = true; btnKey.textContent = "Đang kiểm tra...";
+      msg.className = "msg"; msg.textContent = "";
+      try {
+        const res = await loginWithKey(k);
+        if (!res.ok) { msg.className = "msg error"; msg.textContent = res.msg; return; }
+        showDashboard(res.user);
+      } catch (e) {
+        msg.className = "msg error"; msg.textContent = "Lỗi: " + e.message;
+      } finally {
+        btnKey.disabled = false; btnKey.textContent = "Đăng nhập bằng Key";
+      }
+    };
+  }
+
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.onclick = () => { session.clear(); location.reload(); };
+  }
+
+  const inputPass = document.getElementById("loginPassword");
+  if (inputPass) inputPass.addEventListener("keydown", (e) => { if (e.key === "Enter") btnPass?.click(); });
+  const inputKey = document.getElementById("loginKey");
+  if (inputKey) inputKey.addEventListener("keydown", (e) => { if (e.key === "Enter") btnKey?.click(); });
+}
+
+/* ===== Hiển thị Dashboard ===== */
+function showDashboard(user) {
+  document.getElementById("loginScreen").classList.remove("active");
+  document.getElementById("dashboardScreen").classList.add("active");
+
+  document.getElementById("currentUserLabel").textContent = user.username;
+  const roleBadge = document.getElementById("currentRoleBadge");
+  roleBadge.textContent = (user.role || "").toUpperCase();
+  roleBadge.style.color =
+    user.role === "owner" ? "#ff00d4" :
+    user.role === "admin" ? "#00f0ff" :
+    user.role === "user"  ? "#22c55e" : "#facc15";
+
+  initDashboard(user);
+}
