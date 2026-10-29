@@ -5,7 +5,6 @@ import { renderUserGuest } from "./user.js";
 
 /* ===== Render Dashboard ===== */
 async function initDashboard(user) {
-  // Dùng querySelector an toàn, tránh crash nếu thiếu thẻ
   const navTabs = document.getElementById("navTabs");
   const navHomeBtn = document.getElementById("navHomeBtn");
   const navAdminBtn = document.getElementById("navAdminBtn");
@@ -23,7 +22,6 @@ async function initDashboard(user) {
       navTabs.classList.remove("hidden");
       if (navAdminBtn) navAdminBtn.classList.remove("hidden");
       
-      // Ẩn Log với Admin
       if (subLogBtn) {
         if (user.role === "admin") subLogBtn.classList.add("hidden");
         else subLogBtn.classList.remove("hidden");
@@ -52,7 +50,6 @@ async function initDashboard(user) {
       adminView.classList.remove("hidden");
       adminView.classList.add("active");
 
-      // Click tab tạo tài khoản đầu tiên
       const firstSubTab = document.querySelector('[data-sub="create"]');
       if (firstSubTab) firstSubTab.click();
     };
@@ -67,7 +64,6 @@ async function initDashboard(user) {
     };
   });
 
-  // Khởi tạo Nhận Acc
   renderUserGuest(user);
 }
 
