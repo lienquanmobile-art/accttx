@@ -15,7 +15,9 @@ async function initDashboard(user) {
   homeContent.classList.add("active");
   adminContent.classList.add("hidden");
   adminContent.classList.remove("active");
-  document.getElementById("receivedAccBox").classList.add("hidden");
+  
+  const accBox = document.getElementById("receivedAccBox");
+  if (accBox) accBox.classList.add("hidden");
 
   // Phân quyền hiển thị Menu
   if (user.role === "owner" || user.role === "admin") {
@@ -35,13 +37,11 @@ async function initDashboard(user) {
       e.preventDefault();
       const tab = link.dataset.tab;
       
-      // Ẩn trang chủ, hiện khu vực admin
       homeContent.classList.add("hidden");
       homeContent.classList.remove("active");
       adminContent.classList.remove("hidden");
       adminContent.classList.add("active");
 
-      // Render nội dung tương ứng
       renderAdminTab(tab, user);
     };
   });
@@ -54,8 +54,7 @@ async function initDashboard(user) {
     homeContent.classList.add("active");
   };
 
-  // Khởi tạo chức năng Nhận Acc (dùng chung cho mọi Role)
-  // Hàm này được gọi sau khi DOM đã sẵn sàng
+  // Khởi tạo chức năng Nhận Acc
   renderUserGuest(user);
 }
 
@@ -63,8 +62,7 @@ async function initDashboard(user) {
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("🚀 DOM Loaded");
   
-  // Gắn sự kiện Login trước để không bao giờ bị đơ
-  bindLoginUI();
+  bindLoginUI(); // Gắn sự kiện Login trước để không bao giờ bị đơ
 
   try {
     await ensureOwner();
