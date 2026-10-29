@@ -6,41 +6,6 @@ import {
 
 let unsubKeys = null;
 
-/* ===== Hàm hiển thị Modal Xóa Key ===== */
-function showDeleteKeyModal(keyToDelete, onConfirm) {
-  // Tạo thẻ div chứa modal
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <h3>⚠️ CẢNH BÁO</h3>
-      <p>Bạn có chắc chắn muốn xóa key này?</p>
-      <p>Key bị xóa sẽ không thể khôi phục</p>
-      <p>Key sẽ không dùng được nữa</p>
-      
-      <div class="modal-actions">
-        <button class="btn-cancel-del" id="btnCancelDel">Hủy</button>
-        <button class="btn-confirm-del" id="btnConfirmDel">Xóa Key</button>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(overlay);
-
-  // Gắn sự kiện Hủy
-  overlay.querySelector("#btnCancelDel").onclick = () => {
-    overlay.remove();
-  };
-
-  // Gắn sự kiện Xóa
-  overlay.querySelector("#btnConfirmDel").onclick = () => {
-    overlay.remove(); // Đóng modal
-    onConfirm(); // Thực thi xóa
-  };
-}
-
-/* ===== Hàm render nội dung trang Quản Lí ===== */
 export function renderAdminTab(tab, user) {
   const box = document.getElementById("adminContent");
   if (!box) return;
@@ -58,7 +23,6 @@ export function renderAdminTab(tab, user) {
   if (tab === "log") bindLog();
 }
 
-/* ===== TAB 1: TẠO TÀI KHOẢN ===== */
 function tabCreateAccount(user) {
   const onlyUser = user.role === "admin";
   return `
@@ -113,7 +77,6 @@ function bindCreateAccount(user) {
   };
 }
 
-/* ===== TAB 2: KEYS ===== */
 function tabKeys(user) {
   return `
     <div class="sub-tabs">
@@ -266,23 +229,17 @@ function renderKeyListPane() {
     container.querySelectorAll("[data-copy]").forEach(btn => {
       btn.onclick = () => copyText(btn.dataset.copy);
     });
-    
-    // SỰ KIỆN XÓA KEY BẰNG MODAL
     container.querySelectorAll("[data-del]").forEach(btn => {
-      btn.onclick = () => {
-        const keyToDel = btn.dataset.del;
-        
-        showDeleteKeyModal(keyToDel, async () => {
-          await remove(ref(db, `keys/${keyToDel}`));
-          await writeLog("owner", "Xóa key khách", keyToDel);
-          toast("Đã xóa key", "ok");
-        });
+      btn.onclick = async () => {
+        if (!confirm("Bạn có chắc chắn muốn xóa key này? Người dùng sẽ không thể đăng nhập được nữa.")) return;
+        await remove(ref(db, `keys/${btn.dataset.del}`));
+        await writeLog("owner", "Xóa key khách", btn.dataset.del);
+        toast("Đã xóa key", "ok");
       };
     });
   });
 }
 
-/* ===== TAB 3: LIÊN QUÂN ===== */
 function tabLienQuan() {
   return `
     <div class="panel">
@@ -366,7 +323,6 @@ function bindLienQuan() {
       };
     });
 
-    // Nút xóa acc Liên Quân (Dùng confirm mặc định cho nhanh, bạn có thể đổi sang modal nếu muốn)
     body.querySelectorAll("[data-del]").forEach((b) => {
       b.onclick = async () => {
         if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
@@ -378,7 +334,6 @@ function bindLienQuan() {
   });
 }
 
-/* ===== TAB 4: CHUNG SỨC ===== */
 function tabChungSuc() {
   return `
     <div class="panel">
@@ -437,7 +392,6 @@ function bindChungSuc() {
   });
 }
 
-/* ===== TAB 5: LOG ===== */
 function tabLog() {
   return `
     <div class="panel">
