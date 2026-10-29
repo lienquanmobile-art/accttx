@@ -6,32 +6,16 @@ import {
 
 let unsubKeys = null;
 
-export function renderOwner(user) {
-  const tabs = document.getElementById("mainTabs");
-  tabs.innerHTML = `
-    <button class="main-tab active" data-tab="create">Tạo tài khoản</button>
-    <button class="main-tab" data-tab="keys">Key</button>
-    <button class="main-tab" data-tab="lq">Thêm tài khoản Liên Quân</button>
-    <button class="main-tab" data-tab="cs">Thêm tài khoản Chung sức</button>
-    <button class="main-tab" data-tab="log">Log</button>
-  `;
-  tabs.querySelectorAll(".main-tab").forEach((t) => {
-    t.onclick = () => {
-      tabs.querySelectorAll(".main-tab").forEach((x) => x.classList.remove("active"));
-      t.classList.add("active");
-      renderTab(t.dataset.tab, user);
-    };
-  });
-  renderTab("create", user);
-}
-
-function renderTab(tab, user) {
+/* Hàm này giờ chỉ render nội dung vào thẻ #adminContent dựa theo tab được chọn */
+export function renderAdminTab(tab, user) {
   const box = document.getElementById("adminContent");
+  
   if (tab === "create") box.innerHTML = tabCreateAccount(user);
-  if (tab === "keys")   box.innerHTML = tabKeys(user);
-  if (tab === "lq")     box.innerHTML = tabLienQuan();
-  if (tab === "cs")     box.innerHTML = tabChungSuc();
-  if (tab === "log")    box.innerHTML = tabLog();
+  else if (tab === "keys")   box.innerHTML = tabKeys(user);
+  else if (tab === "lq")     box.innerHTML = tabLienQuan();
+  else if (tab === "cs")     box.innerHTML = tabChungSuc();
+  else if (tab === "log")    box.innerHTML = tabLog();
+  else box.innerHTML = "<p>Vui lòng chọn chức năng từ menu Quản Lý.</p>";
 
   if (tab === "create") bindCreateAccount(user);
   if (tab === "keys")   bindKeys(user);
@@ -40,7 +24,7 @@ function renderTab(tab, user) {
   if (tab === "log")    bindLog();
 }
 
-/* ===== TAB 1 ===== */
+/* ===== TAB 1: TẠO TÀI KHOẢN ===== */
 function tabCreateAccount(user) {
   const onlyUser = user.role === "admin";
   return `
@@ -95,7 +79,7 @@ function bindCreateAccount(user) {
   };
 }
 
-/* ===== TAB 2 ===== */
+/* ===== TAB 2: KEYS ===== */
 function tabKeys(user) {
   return `
     <div class="sub-tabs">
@@ -206,7 +190,6 @@ function renderKeyListPane() {
       return;
     }
 
-    // Render dạng Card, nhưng sửa lại CSS để hiển thị đúng cấu trúc
     container.innerHTML = list.map((k) => {
       const st = keyStatus(k);
       const remain = keyRemain(k);
@@ -219,7 +202,6 @@ function renderKeyListPane() {
       const devCount = Object.keys(devs).length;
       const maxDev = k.maxDevices === -1 ? "∞" : (k.maxDevices || 1);
 
-      // Xử lý hiển thị danh sách thiết bị
       let devListHtml = "";
       if (devCount > 0) {
         devListHtml = Object.entries(devs).map(([id, d]) => 
@@ -229,7 +211,6 @@ function renderKeyListPane() {
         devListHtml = `<div style="font-size:0.8rem; color:#8ab; margin-top:4px; padding-left:10px;">↳ Chưa có thiết bị nào</div>`;
       }
 
-      // Sửa lại khung hiển thị: Dùng display: block, canh trái
       return `
         <div class="result-box" style="max-width: 100%; display: block; padding: 15px 20px;">
           <div style="margin-bottom: 6px;">Tên key : <span style="color:#fff; font-weight:600;">${k.name}</span></div>
@@ -248,7 +229,6 @@ function renderKeyListPane() {
       `;
     }).join("");
 
-    // Gắn sự kiện Copy & Xóa
     container.querySelectorAll("[data-copy]").forEach(btn => {
       btn.onclick = () => copyText(btn.dataset.copy);
     });
@@ -263,7 +243,7 @@ function renderKeyListPane() {
   });
 }
 
-/* ===== TAB 3 ===== */
+/* ===== TAB 3: LIÊN QUÂN ===== */
 function tabLienQuan() {
   return `
     <div class="panel">
@@ -358,7 +338,7 @@ function bindLienQuan() {
   });
 }
 
-/* ===== TAB 4 ===== */
+/* ===== TAB 4: CHUNG SỨC ===== */
 function tabChungSuc() {
   return `
     <div class="panel">
@@ -417,7 +397,7 @@ function bindChungSuc() {
   });
 }
 
-/* ===== TAB 5 ===== */
+/* ===== TAB 5: LOG ===== */
 function tabLog() {
   return `
     <div class="panel">
