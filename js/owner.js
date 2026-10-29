@@ -6,25 +6,23 @@ import {
 
 let unsubKeys = null;
 
-/* Hàm này giờ chỉ render nội dung vào thẻ #adminContent dựa theo tab được chọn */
 export function renderAdminTab(tab, user) {
   const box = document.getElementById("adminContent");
+  if (!box) return;
   
   if (tab === "create") box.innerHTML = tabCreateAccount(user);
-  else if (tab === "keys")   box.innerHTML = tabKeys(user);
-  else if (tab === "lq")     box.innerHTML = tabLienQuan();
-  else if (tab === "cs")     box.innerHTML = tabChungSuc();
-  else if (tab === "log")    box.innerHTML = tabLog();
-  else box.innerHTML = "<p>Vui lòng chọn chức năng từ menu Quản Lý.</p>";
+  else if (tab === "keys") box.innerHTML = tabKeys(user);
+  else if (tab === "lq") box.innerHTML = tabLienQuan();
+  else if (tab === "cs") box.innerHTML = tabChungSuc();
+  else if (tab === "log") box.innerHTML = tabLog();
 
   if (tab === "create") bindCreateAccount(user);
-  if (tab === "keys")   bindKeys(user);
-  if (tab === "lq")     bindLienQuan();
-  if (tab === "cs")     bindChungSuc();
-  if (tab === "log")    bindLog();
+  if (tab === "keys") bindKeys(user);
+  if (tab === "lq") bindLienQuan();
+  if (tab === "cs") bindChungSuc();
+  if (tab === "log") bindLog();
 }
 
-/* ===== TAB 1: TẠO TÀI KHOẢN ===== */
 function tabCreateAccount(user) {
   const onlyUser = user.role === "admin";
   return `
@@ -79,7 +77,6 @@ function bindCreateAccount(user) {
   };
 }
 
-/* ===== TAB 2: KEYS ===== */
 function tabKeys(user) {
   return `
     <div class="sub-tabs">
@@ -243,7 +240,6 @@ function renderKeyListPane() {
   });
 }
 
-/* ===== TAB 3: LIÊN QUÂN ===== */
 function tabLienQuan() {
   return `
     <div class="panel">
@@ -338,7 +334,6 @@ function bindLienQuan() {
   });
 }
 
-/* ===== TAB 4: CHUNG SỨC ===== */
 function tabChungSuc() {
   return `
     <div class="panel">
@@ -397,7 +392,6 @@ function bindChungSuc() {
   });
 }
 
-/* ===== TAB 5: LOG ===== */
 function tabLog() {
   return `
     <div class="panel">
