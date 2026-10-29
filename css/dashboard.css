@@ -1,173 +1,60 @@
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  background: rgba(5,6,13,.85);
-  border-bottom: 1px solid rgba(0,240,255,.25);
-  box-shadow: 0 2px 18px rgba(0,240,255,.15);
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.topbar .logo { font-size: 1.2rem; }
-.user-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: .85rem; }
-
-.key-timer {
-  color: var(--yellow);
-  font-weight: 700;
-  font-family: monospace;
-  text-shadow: 0 0 6px var(--yellow);
-}
-
-.main-tabs {
-  display: flex;
-  gap: 6px;
-  padding: 14px 24px 0;
-  flex-wrap: wrap;
-  border-bottom: 1px solid rgba(0,240,255,.15);
-}
-.main-tab {
-  padding: 11px 20px;
-  background: transparent;
-  border: 1px solid rgba(0,240,255,.3);
-  border-bottom: none;
-  border-radius: 10px 10px 0 0;
-  color: #8ab;
-  cursor: pointer;
-  font-weight: 600;
-  transition: .2s;
-}
-.main-tab:hover { color: #dff; }
-.main-tab.active {
-  color: #fff;
-  background: rgba(0,240,255,.1);
-  border-color: var(--neon-cyan);
-  box-shadow: 0 -2px 14px rgba(0,240,255,.35);
-}
-
-.content { padding: 24px; }
-
-.panel {
-  background: rgba(10,15,31,.7);
-  border: 1px solid rgba(0,240,255,.25);
-  border-radius: 12px;
-  padding: 22px;
-  margin-bottom: 22px;
-  box-shadow: 0 0 12px rgba(0,240,255,.12);
-}
-.panel h3 { margin-bottom: 16px; color: var(--neon-cyan); letter-spacing: 1px; }
-
-.panel-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.form-row { display: flex; gap: 12px; flex-wrap: wrap; }
-.form-row > * { flex: 1; min-width: 140px; }
-
-.sub-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
-.sub-tab {
-  padding: 9px 18px;
-  background: rgba(0,0,0,.35);
-  border: 1px solid rgba(0,240,255,.3);
-  border-radius: 8px;
-  color: #8ab; cursor: pointer; font-weight: 600;
-}
-.sub-tab.active { color: #fff; background: rgba(0,240,255,.15); border-color: var(--neon-cyan); }
-
-/* Bảng danh sách */
-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-th, td {
-  padding: 10px 8px;
-  text-align: left;
-  border-bottom: 1px solid rgba(0,240,255,.12);
-}
-th { color: var(--neon-cyan); font-size: .78rem; letter-spacing: 1px; text-transform: uppercase; }
-tr:hover td { background: rgba(0,240,255,.04); }
-
-/* Trạng thái key */
-.status {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: .72rem;
-  font-weight: 700;
+/* ===== MENU DROPDOWN QUẢN LÝ ===== */
+.dropdown {
+  position: relative;
   display: inline-block;
 }
-.status.inactive { color: var(--sky); background: rgba(125,211,252,.12); border: 1px solid var(--sky); }
-.status.active   { color: var(--green); background: rgba(34,197,94,.12); border: 1px solid var(--green); }
-.status.expired  { color: var(--red); background: rgba(239,68,68,.12); border: 1px solid var(--red); }
-.status.open     { color: var(--green); background: rgba(34,197,94,.12); border: 1px solid var(--green); }
-.status.locked   { color: var(--red); background: rgba(239,68,68,.12); border: 1px solid var(--red); }
 
-/* Kết quả / card */
-.result-box, .acc-card {
-  margin-top: 16px;
-  padding: 16px;
-  background: rgba(0,240,255,.05);
-  border: 1px solid var(--neon-cyan);
-  border-radius: 10px;
-  box-shadow: 0 0 14px rgba(0,240,255,.25);
-  font-family: monospace;
-  font-size: .88rem;
-  line-height: 1.9;
-  text-align: left;
-  width: 100%;
-  max-width: 460px;
-}
-.result-box .row, .acc-card .row { display: flex; justify-content: space-between; gap: 12px; }
-.result-box .row span:first-child, .acc-card .row span:first-child { color: #8ab; }
-.result-box .row span:last-child, .acc-card .row span:last-child { color: #fff; font-weight: 600; }
-
-.copy-btn {
-  margin-top: 10px;
-  padding: 7px 16px;
-  background: rgba(0,240,255,.15);
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: rgba(5, 6, 13, 0.95);
+  min-width: 180px;
   border: 1px solid var(--neon-cyan);
   border-radius: 8px;
-  color: #dff; cursor: pointer; font-weight: 600;
-}
-.copy-btn:hover { box-shadow: 0 0 12px var(--neon-cyan); }
-
-.note { color: var(--yellow); font-size: .8rem; margin-top: 8px; }
-
-@media (max-width: 640px) {
-  .content { padding: 14px; }
-  .panel { padding: 14px; }
-  th, td { font-size: .76rem; padding: 8px 5px; }
-}
-/* Fix: đảm bảo nút Nhận Acc luôn clickable */
-#btnGetAccount {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  position: relative;
-  z-index: 10;
-}
-#btnGetAccount:disabled {
-  cursor: wait !important;
-  opacity: 0.6;
-}
-.panel-center {
-  position: relative;
-  z-index: 1;
-}
-/* CSS cho nút chuyển đổi Trạng thái */
-.btn-lock {
-  border-color: var(--red) !important;
-  color: var(--red) !important;
-}
-.btn-lock:hover {
-  box-shadow: 0 0 12px var(--red) !important;
-  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  margin-top: 8px;
 }
 
-.btn-open {
-  border-color: var(--green) !important;
-  color: var(--green) !important;
+.dropdown-content a {
+  color: var(--text);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+  transition: 0.2s;
 }
-.btn-open:hover {
-  box-shadow: 0 0 12px var(--green) !important;
-  background: rgba(34, 197, 94, 0.15) !important;
+
+.dropdown-content a:hover {
+  background-color: rgba(0, 240, 255, 0.15);
+  color: #fff;
+  padding-left: 20px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Hiệu ứng cho các Tab nội dung */
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+.tab-pane.active {
+  display: block;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Chỉnh lại khu vực content một chút để đẹp hơn */
+#dashboardContent {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
