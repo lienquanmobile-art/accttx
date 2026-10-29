@@ -3,14 +3,12 @@ import { loginWithPassword, loginWithKey } from "./auth.js";
 import { renderAdminTab } from "./owner.js";
 import { renderUserGuest } from "./user.js";
 
-/* ===== Render Dashboard ===== */
 async function initDashboard(user) {
   const homeContent = document.getElementById("homeContent");
   const adminContent = document.getElementById("adminContent");
   const adminMenuContainer = document.getElementById("adminMenuContainer");
   const menuLog = document.getElementById("menuLog");
 
-  // Reset trạng thái
   homeContent.classList.remove("hidden");
   homeContent.classList.add("active");
   adminContent.classList.add("hidden");
@@ -19,19 +17,17 @@ async function initDashboard(user) {
   const accBox = document.getElementById("receivedAccBox");
   if (accBox) accBox.classList.add("hidden");
 
-  // Phân quyền hiển thị Menu
   if (user.role === "owner" || user.role === "admin") {
     adminMenuContainer.classList.remove("hidden");
-    if (user.role === "admin") {
-      menuLog.style.display = "none"; // Admin không có Log
-    } else {
+    if (user.role === "admin" && menuLog) {
+      menuLog.style.display = "none";
+    } else if (menuLog) {
       menuLog.style.display = "block";
     }
   } else {
-    adminMenuContainer.classList.add("hidden"); // User/Khách không có menu
+    adminMenuContainer.classList.add("hidden");
   }
 
-  // Gắn sự kiện click vào các mục trong Menu Dropdown
   document.querySelectorAll("#adminDropdown a").forEach(link => {
     link.onclick = (e) => {
       e.preventDefault();
@@ -46,7 +42,6 @@ async function initDashboard(user) {
     };
   });
 
-  // Bấm vào Logo để về Trang Chủ
   document.getElementById("btnHomeLogo").onclick = () => {
     adminContent.classList.add("hidden");
     adminContent.classList.remove("active");
@@ -54,28 +49,23 @@ async function initDashboard(user) {
     homeContent.classList.add("active");
   };
 
-  // Khởi tạo chức năng Nhận Acc
   renderUserGuest(user);
 }
 
-/* ===== Khởi tạo ===== */
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("🚀 DOM Loaded");
-  
-  bindLoginUI(); // Gắn sự kiện Login trước để không bao giờ bị đơ
+  bindLoginUI();
 
   try {
     await ensureOwner();
   } catch (e) {
     console.error("❌ ensureOwner error:", e);
-    toast("Không kết nối được Firebase", "error");
   }
 
   const u = session.get();
   if (u) showDashboard(u);
 });
 
-/* ===== LOGIN UI ===== */
 function bindLoginUI() {
   const tabBar = document.querySelector(".login-tabs");
   if (tabBar) {
@@ -99,7 +89,7 @@ function bindLoginUI() {
       
       if (!u || !p) { 
         msg.className = "msg error"; 
-        msg.textContent = "Nhập đủ tên đăng nhập và mật khẩu"; 
+        msg.textContent = "Nhập đủ thông tin"; 
         return; 
       }
       
@@ -134,7 +124,7 @@ function bindLoginUI() {
       
       if (!k) { 
         msg.className = "msg error"; 
-        msg.textContent = "Nhập private key"; 
+        msg.textContent = "Nhập key"; 
         return; 
       }
       
@@ -165,14 +155,8 @@ function bindLoginUI() {
   if (btnLogout) {
     btnLogout.onclick = () => { session.clear(); location.reload(); };
   }
-
-  const inputPass = document.getElementById("loginPassword");
-  if (inputPass) inputPass.addEventListener("keydown", (e) => { if (e.key === "Enter") btnPass?.click(); });
-  const inputKey = document.getElementById("loginKey");
-  if (inputKey) inputKey.addEventListener("keydown", (e) => { if (e.key === "Enter") btnKey?.click(); });
 }
 
-/* ===== Hiển thị Dashboard ===== */
 function showDashboard(user) {
   document.getElementById("loginScreen").classList.remove("active");
   document.getElementById("dashboardScreen").classList.add("active");
