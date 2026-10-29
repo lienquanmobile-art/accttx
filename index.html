@@ -50,23 +50,25 @@
 
   <!-- ===== DASHBOARD ===== -->
   <div id="dashboardScreen" class="screen">
-    <!-- Topbar giữ nguyên như cũ -->
+    <!-- Topbar mới: Căn đều 2 bên -->
     <header class="topbar">
       <h2 class="logo neon-text">BLACK<span>SYSTEM</span></h2>
+      
+      <!-- Cụm bên phải -->
       <div class="user-info">
         <span id="currentUserLabel"></span>
         <span id="currentRoleBadge" class="badge"></span>
         <span id="keyTimer" class="key-timer hidden">Key: 00:00:00</span>
+        
+        <!-- Nút Điều Hướng -->
+        <div id="navTabs" class="nav-tabs hidden">
+          <button class="nav-btn active" data-target="home">Trang Chủ</button>
+          <button id="navAdminBtn" class="nav-btn hidden" data-target="admin">Quản Lí</button>
+        </div>
+
         <button id="btnLogout" class="btn-neon small">Đăng xuất</button>
       </div>
     </header>
-
-    <!-- Thanh Điều Hướng Mới -->
-    <nav id="mainTabs" class="main-tabs hidden">
-      <button class="main-tab active" data-target="home">Trang Chủ</button>
-      <!-- Nút Quản Lí chỉ hiện với Owner và Admin -->
-      <button id="navAdminBtn" class="main-tab hidden" data-target="admin">Quản Lí</button>
-    </nav>
 
     <!-- Khu vực nội dung -->
     <div class="content">
@@ -85,23 +87,23 @@
 
       <!-- TRANG QUẢN LÍ -->
       <div id="adminView" class="view-pane hidden">
-        <!-- Các nút con của trang Quản Lí (Tạo TK, Key, LQ...) -->
-        <div id="adminSubTabs" class="main-tabs" style="margin-top: 0; padding-top: 0; border-bottom: none;">
-          <button class="main-tab" data-sub="create">Tạo tài khoản</button>
+        <!-- Các nút con của trang Quản Lí -->
+        <div id="adminSubTabs" class="main-tabs" style="margin-bottom: 20px;">
+          <button class="main-tab active" data-sub="create">Tạo tài khoản</button>
           <button class="main-tab" data-sub="keys">Quản lý Key</button>
           <button class="main-tab" data-sub="lq">Acc Liên Quân</button>
           <button class="main-tab" data-sub="cs">Acc Chung sức</button>
           <button class="main-tab" id="subLogBtn" data-sub="log">Log hệ thống</button>
         </div>
         
-        <!-- Nội dung chi tiết của trang Quản Lí -->
-        <div id="adminContent" style="margin-top: 20px;"></div>
+        <!-- Nội dung chi tiết -->
+        <div id="adminContent"></div>
       </div>
 
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="js/app.js?v=3"></script>
+  <script type="module" src="js/app.js?v=4"></script>
 </body>
 </html>
