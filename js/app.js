@@ -7,6 +7,7 @@ import { renderUserGuest } from "./user.js";
 async function initDashboard(user) {
   const navHomeBtn = document.querySelector('[data-target="home"]');
   const navAdminBtn = document.getElementById("navAdminBtn");
+  const navTabs = document.getElementById("navTabs");
   const homeView = document.getElementById("homeView");
   const adminView = document.getElementById("adminView");
   const subLogBtn = document.getElementById("subLogBtn");
@@ -17,15 +18,17 @@ async function initDashboard(user) {
   adminView.classList.add("hidden");
   adminView.classList.remove("active");
 
-  // Phân quyền hiển thị nút "Quản Lí" trên thanh điều hướng
+  // Phân quyền hiển thị cụm Nút Điều Hướng
   if (user.role === "owner" || user.role === "admin") {
-    document.getElementById("mainTabs").classList.remove("hidden");
+    navTabs.classList.remove("hidden");
     navAdminBtn.classList.remove("hidden");
     if (user.role === "admin") {
-      subLogBtn.classList.add("hidden"); // Ẩn tab Log nếu là Admin
+      subLogBtn.classList.add("hidden");
+    } else {
+      subLogBtn.classList.remove("hidden");
     }
   } else {
-    document.getElementById("mainTabs").classList.add("hidden"); // Ẩn thanh tab nếu là User/Guest
+    navTabs.classList.add("hidden"); // User / Guest ẩn đi
   }
 
   // Chuyển đổi giữa Trang Chủ và Quản Lí
@@ -46,7 +49,7 @@ async function initDashboard(user) {
     adminView.classList.remove("hidden");
     adminView.classList.add("active");
 
-    // Mặc định mở tab Tạo Tài Khoản khi vào Quản Lí
+    // Mặc định mở tab Tạo Tài Khoản khi bấm vào Quản Lí
     const firstSubTab = document.querySelector('[data-sub="create"]');
     if (firstSubTab) firstSubTab.click();
   };
