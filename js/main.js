@@ -2,16 +2,7 @@ import { ensureOwner, session, toast } from "./utils.js";
 import { loginWithPassword, loginWithKey } from "./auth.js";
 import { renderAdminTab } from "./owner.js";
 import { renderUserGuest } from "./user.js";
-import { db, ref, push, onValue, set, remove, get, update } from "./firebase-config.js";
-
-// Tự động import onDisconnect nếu có để tránh crash
-let onDisconnectFunc = null;
-try {
-  const fbConfig = await import("./firebase-config.js");
-  if (fbConfig.onDisconnect) onDisconnectFunc = fbConfig.onDisconnect;
-} catch (e) {
-  console.log("Không tìm thấy onDisconnect, bỏ qua tính năng tự động thoát khi tắt tab.");
-}
+import { db, ref, push, onValue, set, remove, get } from "./firebase-config.js";
 
 /* ===== Biến toàn cục cho Chat ===== */
 let currentRoomId = null; 
@@ -20,6 +11,8 @@ let roomUnsubscribe = null;
 
 /* ===== Render Dashboard ===== */
 async function initDashboard(user) {
+  console.log("Khởi tạo Dashboard cho:", user.username);
+
   const navAccBtn = document.getElementById("navAccBtn");
   const navChatBtn = document.getElementById("navChatBtn");
   const navAdminBtn = document.getElementById("navAdminBtn");
@@ -32,6 +25,7 @@ async function initDashboard(user) {
   if (accView) { accView.classList.remove("hidden"); accView.classList.add("active"); }
   if (chatView) { chatView.classList.add("hidden"); chatView.classList.remove("active"); }
   if (adminView) { adminView.classList.add("hidden"); adminView.classList.remove("active"); }
+  
   if (navAccBtn) navAccBtn.classList.add("active");
   if (navChatBtn) navChatBtn.classList.remove("active");
   if (navAdminBtn) navAdminBtn.classList.remove("active");
@@ -49,7 +43,7 @@ async function initDashboard(user) {
     }
   }
 
-  // Sự kiện chuyển Tab
+  // Gắn sự kiện chuyển Tab an toàn
   if (navAccBtn) {
     navAccBtn.onclick = () => {
       navAccBtn.classList.add("active"); navChatBtn.classList.remove("active"); navAdminBtn.classList.remove("active");
@@ -206,12 +200,6 @@ async function enterRoom(roomId, roomName, user) {
   if (roomId !== "global") {
     await set(ref(db, `rooms/${roomId}/members/${user.username}`), true);
     
-    // Nếu có hàm onDisconnect thì dùng
-    if (onDisconnectFunc) {
-      const memberRef = ref(db, `rooms/${roomId}/members/${user.username}`);
-      onDisconnectFunc(memberRef).remove();
-    }
-    
     if (roomUnsubscribe) roomUnsubscribe();
     roomUnsubscribe = onValue(ref(db, `rooms/${roomId}`), (snap) => {
       if (!snap.exists()) {
@@ -325,6 +313,7 @@ window.joinExistingRoom = (id, name) => {
 
 /* ===== KHỞI TẠO CHUNG ===== */
 window.addEventListener("DOMContentLoaded", async () => {
+  console.log("DOM Loaded");
   bindLoginUI();
 
   try {
