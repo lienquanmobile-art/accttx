@@ -5,56 +5,60 @@ import { renderUserGuest } from "./user.js";
 
 /* ===== Render Dashboard ===== */
 async function initDashboard(user) {
-  const navHomeBtn = document.querySelector('[data-target="home"]');
-  const navAdminBtn = document.getElementById("navAdminBtn");
+  // Dùng querySelector an toàn, tránh crash nếu thiếu thẻ
   const navTabs = document.getElementById("navTabs");
+  const navHomeBtn = document.getElementById("navHomeBtn");
+  const navAdminBtn = document.getElementById("navAdminBtn");
   const homeView = document.getElementById("homeView");
   const adminView = document.getElementById("adminView");
   const subLogBtn = document.getElementById("subLogBtn");
 
-  // Reset trạng thái
-  homeView.classList.remove("hidden");
-  homeView.classList.add("active");
-  adminView.classList.add("hidden");
-  adminView.classList.remove("active");
+  // Reset trạng thái an toàn
+  if (homeView) { homeView.classList.remove("hidden"); homeView.classList.add("active"); }
+  if (adminView) { adminView.classList.add("hidden"); adminView.classList.remove("active"); }
 
-  // Phân quyền hiển thị cụm Nút Điều Hướng
-  if (user.role === "owner" || user.role === "admin") {
-    navTabs.classList.remove("hidden");
-    navAdminBtn.classList.remove("hidden");
-    if (user.role === "admin") {
-      subLogBtn.classList.add("hidden");
+  // Phân quyền hiển thị
+  if (navTabs) {
+    if (user.role === "owner" || user.role === "admin") {
+      navTabs.classList.remove("hidden");
+      if (navAdminBtn) navAdminBtn.classList.remove("hidden");
+      
+      // Ẩn Log với Admin
+      if (subLogBtn) {
+        if (user.role === "admin") subLogBtn.classList.add("hidden");
+        else subLogBtn.classList.remove("hidden");
+      }
     } else {
-      subLogBtn.classList.remove("hidden");
+      navTabs.classList.add("hidden");
     }
-  } else {
-    navTabs.classList.add("hidden"); // User / Guest ẩn đi
   }
 
-  // Chuyển đổi giữa Trang Chủ và Quản Lí
-  navHomeBtn.onclick = () => {
-    navHomeBtn.classList.add("active");
-    navAdminBtn.classList.remove("active");
-    homeView.classList.remove("hidden");
-    homeView.classList.add("active");
-    adminView.classList.add("hidden");
-    adminView.classList.remove("active");
-  };
+  // Sự kiện chuyển Tab
+  if (navHomeBtn && navAdminBtn && homeView && adminView) {
+    navHomeBtn.onclick = () => {
+      navHomeBtn.classList.add("active");
+      navAdminBtn.classList.remove("active");
+      homeView.classList.remove("hidden");
+      homeView.classList.add("active");
+      adminView.classList.add("hidden");
+      adminView.classList.remove("active");
+    };
 
-  navAdminBtn.onclick = () => {
-    navHomeBtn.classList.remove("active");
-    navAdminBtn.classList.add("active");
-    homeView.classList.add("hidden");
-    homeView.classList.remove("active");
-    adminView.classList.remove("hidden");
-    adminView.classList.add("active");
+    navAdminBtn.onclick = () => {
+      navHomeBtn.classList.remove("active");
+      navAdminBtn.classList.add("active");
+      homeView.classList.add("hidden");
+      homeView.classList.remove("active");
+      adminView.classList.remove("hidden");
+      adminView.classList.add("active");
 
-    // Mặc định mở tab Tạo Tài Khoản khi bấm vào Quản Lí
-    const firstSubTab = document.querySelector('[data-sub="create"]');
-    if (firstSubTab) firstSubTab.click();
-  };
+      // Click tab tạo tài khoản đầu tiên
+      const firstSubTab = document.querySelector('[data-sub="create"]');
+      if (firstSubTab) firstSubTab.click();
+    };
+  }
 
-  // Gắn sự kiện cho các nút con trong trang Quản Lí
+  // Gắn sự kiện cho các Tab Con
   document.querySelectorAll("#adminSubTabs .main-tab").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll("#adminSubTabs .main-tab").forEach(x => x.classList.remove("active"));
@@ -63,7 +67,7 @@ async function initDashboard(user) {
     };
   });
 
-  // Khởi tạo chức năng Nhận Acc
+  // Khởi tạo Nhận Acc
   renderUserGuest(user);
 }
 
@@ -163,13 +167,17 @@ function showDashboard(user) {
   document.getElementById("loginScreen").classList.remove("active");
   document.getElementById("dashboardScreen").classList.add("active");
 
-  document.getElementById("currentUserLabel").textContent = user.username;
+  const userLabel = document.getElementById("currentUserLabel");
+  if (userLabel) userLabel.textContent = user.username;
+  
   const roleBadge = document.getElementById("currentRoleBadge");
-  roleBadge.textContent = (user.role || "").toUpperCase();
-  roleBadge.style.color =
-    user.role === "owner" ? "#ff00d4" :
-    user.role === "admin" ? "#00f0ff" :
-    user.role === "user"  ? "#22c55e" : "#facc15";
+  if (roleBadge) {
+    roleBadge.textContent = (user.role || "").toUpperCase();
+    roleBadge.style.color =
+      user.role === "owner" ? "#ff00d4" :
+      user.role === "admin" ? "#00f0ff" :
+      user.role === "user"  ? "#22c55e" : "#facc15";
+  }
 
   initDashboard(user);
 }
