@@ -10,7 +10,7 @@ async function initDashboard(user) {
   const adminMenuContainer = document.getElementById("adminMenuContainer");
   const menuLog = document.getElementById("menuLog");
 
-  // Reset
+  // Reset trạng thái
   homeContent.classList.remove("hidden");
   homeContent.classList.add("active");
   adminContent.classList.add("hidden");
@@ -29,19 +29,19 @@ async function initDashboard(user) {
     adminMenuContainer.classList.add("hidden"); // User/Khách không có menu
   }
 
-  // Gắn sự kiện click vào menu
+  // Gắn sự kiện click vào các mục trong Menu Dropdown
   document.querySelectorAll("#adminDropdown a").forEach(link => {
     link.onclick = (e) => {
       e.preventDefault();
       const tab = link.dataset.tab;
       
-      // Đổi trạng thái active
+      // Ẩn trang chủ, hiện khu vực admin
       homeContent.classList.add("hidden");
       homeContent.classList.remove("active");
       adminContent.classList.remove("hidden");
       adminContent.classList.add("active");
 
-      // Render nội dung tương ứng vào adminContent
+      // Render nội dung tương ứng
       renderAdminTab(tab, user);
     };
   });
@@ -55,17 +55,21 @@ async function initDashboard(user) {
   };
 
   // Khởi tạo chức năng Nhận Acc (dùng chung cho mọi Role)
+  // Hàm này được gọi sau khi DOM đã sẵn sàng
   renderUserGuest(user);
 }
 
 /* ===== Khởi tạo ===== */
 window.addEventListener("DOMContentLoaded", async () => {
+  console.log("🚀 DOM Loaded");
+  
+  // Gắn sự kiện Login trước để không bao giờ bị đơ
   bindLoginUI();
 
   try {
     await ensureOwner();
   } catch (e) {
-    console.error("❌ [app] ensureOwner error:", e);
+    console.error("❌ ensureOwner error:", e);
     toast("Không kết nối được Firebase", "error");
   }
 
@@ -94,17 +98,32 @@ function bindLoginUI() {
       const msg = document.getElementById("loginMsg");
       const u = document.getElementById("loginUsername").value.trim();
       const p = document.getElementById("loginPassword").value;
-      if (!u || !p) { msg.className = "msg error"; msg.textContent = "Nhập đủ thông tin"; return; }
-      btnPass.disabled = true; btnPass.textContent = "Đang đăng nhập...";
-      msg.className = "msg"; msg.textContent = "";
+      
+      if (!u || !p) { 
+        msg.className = "msg error"; 
+        msg.textContent = "Nhập đủ tên đăng nhập và mật khẩu"; 
+        return; 
+      }
+      
+      btnPass.disabled = true; 
+      btnPass.textContent = "Đang đăng nhập...";
+      msg.className = "msg"; 
+      msg.textContent = "";
+      
       try {
         const res = await loginWithPassword(u, p);
-        if (!res.ok) { msg.className = "msg error"; msg.textContent = res.msg; return; }
+        if (!res.ok) { 
+          msg.className = "msg error"; 
+          msg.textContent = res.msg; 
+          return; 
+        }
         showDashboard(res.user);
       } catch (e) {
-        msg.className = "msg error"; msg.textContent = "Lỗi: " + e.message;
+        msg.className = "msg error"; 
+        msg.textContent = "Lỗi: " + e.message;
       } finally {
-        btnPass.disabled = false; btnPass.textContent = "Đăng nhập";
+        btnPass.disabled = false; 
+        btnPass.textContent = "Đăng nhập";
       }
     };
   }
@@ -114,17 +133,32 @@ function bindLoginUI() {
     btnKey.onclick = async () => {
       const msg = document.getElementById("loginMsg");
       const k = document.getElementById("loginKey").value.trim();
-      if (!k) { msg.className = "msg error"; msg.textContent = "Nhập key"; return; }
-      btnKey.disabled = true; btnKey.textContent = "Đang kiểm tra...";
-      msg.className = "msg"; msg.textContent = "";
+      
+      if (!k) { 
+        msg.className = "msg error"; 
+        msg.textContent = "Nhập private key"; 
+        return; 
+      }
+      
+      btnKey.disabled = true; 
+      btnKey.textContent = "Đang kiểm tra...";
+      msg.className = "msg"; 
+      msg.textContent = "";
+      
       try {
         const res = await loginWithKey(k);
-        if (!res.ok) { msg.className = "msg error"; msg.textContent = res.msg; return; }
+        if (!res.ok) { 
+          msg.className = "msg error"; 
+          msg.textContent = res.msg; 
+          return; 
+        }
         showDashboard(res.user);
       } catch (e) {
-        msg.className = "msg error"; msg.textContent = "Lỗi: " + e.message;
+        msg.className = "msg error"; 
+        msg.textContent = "Lỗi: " + e.message;
       } finally {
-        btnKey.disabled = false; btnKey.textContent = "Đăng nhập bằng Key";
+        btnKey.disabled = false; 
+        btnKey.textContent = "Đăng nhập bằng Key";
       }
     };
   }
