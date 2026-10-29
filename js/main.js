@@ -4,12 +4,10 @@ import { renderAdminTab } from "./owner.js";
 import { renderUserGuest } from "./user.js";
 import { db, ref, push, onValue, set, remove, get } from "./firebase-config.js";
 
-/* ===== Biến toàn cục cho Chat ===== */
 let currentRoomId = null; 
 let chatUnsubscribe = null;
 let roomUnsubscribe = null;
 
-/* ===== Render Dashboard ===== */
 async function initDashboard(user) {
   console.log("Khởi tạo Dashboard cho:", user.username);
 
@@ -97,7 +95,6 @@ async function initDashboard(user) {
   }
 }
 
-/* ===== LOGIC CHAT ===== */
 function initChatUI(user) {
   const btnChatGlobal = document.getElementById("btnChatGlobal");
   const btnJoinRoom = document.getElementById("btnJoinRoom");
@@ -311,9 +308,7 @@ window.joinExistingRoom = (id, name) => {
   enterRoom(id, name, session.get());
 };
 
-/* ===== KHỞI TẠO CHUNG ===== */
 window.addEventListener("DOMContentLoaded", async () => {
-  console.log("DOM Loaded");
   bindLoginUI();
 
   try {
@@ -326,7 +321,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (u) showDashboard(u);
 });
 
-/* Các hàm Login giữ nguyên */
 function bindLoginUI() {
   const tabBar = document.querySelector(".login-tabs");
   if (tabBar) {
