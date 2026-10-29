@@ -19,7 +19,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
 </head>
 <body>
-  <!-- MÀN HÌNH LOGIN -->
+  <!-- ===== MÀN HÌNH LOGIN ===== -->
   <div id="loginScreen" class="screen active">
     <div class="login-box neon-border">
       <h1 class="logo neon-text">BLACK<span>SYSTEM</span></h1>
@@ -48,34 +48,31 @@
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- ===== DASHBOARD ===== -->
   <div id="dashboardScreen" class="screen">
+    <!-- Topbar giữ nguyên như cũ -->
     <header class="topbar">
-      <h2 class="logo neon-text" id="btnHomeLogo" style="cursor:pointer;">BLACK<span>SYSTEM</span></h2>
-      
+      <h2 class="logo neon-text">BLACK<span>SYSTEM</span></h2>
       <div class="user-info">
         <span id="currentUserLabel"></span>
         <span id="currentRoleBadge" class="badge"></span>
         <span id="keyTimer" class="key-timer hidden">Key: 00:00:00</span>
-        
-        <div id="adminMenuContainer" class="dropdown hidden">
-          <button id="btnAdminMenu" class="btn-neon small">⚙️ Quản Lý ▼</button>
-          <div id="adminDropdown" class="dropdown-content">
-            <a href="#" data-tab="create">Tạo tài khoản</a>
-            <a href="#" data-tab="keys">Quản lý Key</a>
-            <a href="#" data-tab="lq">Acc Liên Quân</a>
-            <a href="#" data-tab="cs">Acc Chung sức</a>
-            <a href="#" data-tab="log" id="menuLog">Log hệ thống</a>
-          </div>
-        </div>
-
         <button id="btnLogout" class="btn-neon small">Đăng xuất</button>
       </div>
     </header>
 
-    <div id="dashboardContent" class="content">
+    <!-- Thanh Điều Hướng Mới -->
+    <nav id="mainTabs" class="main-tabs hidden">
+      <button class="main-tab active" data-target="home">Trang Chủ</button>
+      <!-- Nút Quản Lí chỉ hiện với Owner và Admin -->
+      <button id="navAdminBtn" class="main-tab hidden" data-target="admin">Quản Lí</button>
+    </nav>
+
+    <!-- Khu vực nội dung -->
+    <div class="content">
+      
       <!-- TRANG CHỦ -->
-      <div id="homeContent" class="tab-pane active">
+      <div id="homeView" class="view-pane active">
         <div class="panel-center">
           <h2 class="neon-text">Nhận Acc Cộng Đồng</h2>
           <p style="color:#8ab; margin-bottom: 20px; font-size: 0.9rem;">Bấm vào nút bên dưới để nhận ngẫu nhiên 1 tài khoản Liên Quân đang mở.</p>
@@ -86,12 +83,25 @@
         </div>
       </div>
 
-      <!-- QUẢN LÝ ADMIN/OWNER -->
-      <div id="adminContent" class="tab-pane hidden"></div>
+      <!-- TRANG QUẢN LÍ -->
+      <div id="adminView" class="view-pane hidden">
+        <!-- Các nút con của trang Quản Lí (Tạo TK, Key, LQ...) -->
+        <div id="adminSubTabs" class="main-tabs" style="margin-top: 0; padding-top: 0; border-bottom: none;">
+          <button class="main-tab" data-sub="create">Tạo tài khoản</button>
+          <button class="main-tab" data-sub="keys">Quản lý Key</button>
+          <button class="main-tab" data-sub="lq">Acc Liên Quân</button>
+          <button class="main-tab" data-sub="cs">Acc Chung sức</button>
+          <button class="main-tab" id="subLogBtn" data-sub="log">Log hệ thống</button>
+        </div>
+        
+        <!-- Nội dung chi tiết của trang Quản Lí -->
+        <div id="adminContent" style="margin-top: 20px;"></div>
+      </div>
+
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="js/app.js?v=99"></script>
+  <script type="module" src="js/app.js?v=3"></script>
 </body>
 </html>
