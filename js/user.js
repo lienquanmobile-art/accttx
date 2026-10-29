@@ -6,53 +6,53 @@ let timerId = null;
 export function renderUserGuest(user) {
   console.log("👤 [renderUserGuest] role =", user.role);
 
-  // Timer key khách
+  // Timer key khách (chỉ áp dụng cho khách)
   const timerEl = document.getElementById("keyTimer");
   if (timerId) clearInterval(timerId);
 
-  if (user.role === "guest" && user.guestKey) {
-    timerEl.classList.remove("hidden");
-    const refresh = async () => {
-      try {
-        const snap = await get(ref(db, `keys/${user.key}`));
-        if (!snap.exists()) { timerEl.textContent = "Key: Hết hạn"; return; }
-        const k = snap.val();
-        const remain = keyRemain(k);
-        timerEl.textContent = "Key: " + fmtTime(remain);
-        if (remain <= 0) {
-          clearInterval(timerId);
-          toast("Key đã hết hạn", "error");
-          setTimeout(() => { sessionStorage.clear(); location.reload(); }, 1500);
-        }
-      } catch (e) { console.error(e); }
-    };
-    refresh();
-    timerId = setInterval(refresh, 1000);
-  } else {
-    timerEl.classList.add("hidden");
+  if (timerEl) {
+    if (user.role === "guest" && user.guestKey) {
+      timerEl.classList.remove("hidden");
+      const refresh = async () => {
+        try {
+          const snap = await get(ref(db, `keys/${user.key}`));
+          if (!snap.exists()) { timerEl.textContent = "Key: Hết hạn"; return; }
+          const k = snap.val();
+          const remain = keyRemain(k);
+          timerEl.textContent = "Key: " + fmtTime(remain);
+          if (remain <= 0) {
+            clearInterval(timerId);
+            toast("Key đã hết hạn", "error");
+            setTimeout(() => { sessionStorage.clear(); location.reload(); }, 1500);
+          }
+        } catch (e) { console.error(e); }
+      };
+      refresh();
+      timerId = setInterval(refresh, 1000);
+    } else {
+      timerEl.classList.add("hidden");
+    }
   }
 
-  // ⚠️ BIND LẠI NÚT — DÙNG addEventListener + gỡ listener cũ
+  // GẮN SỰ KIỆN CHO NÚT NHẬN ACC
   const btn = document.getElementById("btnGetAccount");
   if (!btn) {
     console.error("❌ Không tìm thấy #btnGetAccount");
     return;
   }
 
-  // Đảm bảo nút không bị disabled từ HTML
+  // Đảm bảo nút không bị vô hiệu hóa
   btn.disabled = false;
   btn.removeAttribute("disabled");
   btn.style.pointerEvents = "auto";
+  btn.onclick = null; // Xóa onclick cũ
 
-  // Gỡ onclick cũ (nếu có) và gắn mới
-  btn.onclick = null;
-  const handler = () => {
+  btn.addEventListener("click", () => {
     console.log("🖱️ [btnGetAccount] CLICK!");
     claimAccount(user);
-  };
-  btn.addEventListener("click", handler);
-
-  console.log("✅ [renderUserGuest] Đã gắn sự kiện click vào nút Nhận Acc");
+  });
+  
+  console.log("✅ Đã gắn sự kiện click vào nút Nhận Acc");
 }
 
 /* ===== Nhận acc ===== */
@@ -70,7 +70,6 @@ async function claimAccount(user) {
     let keyPath = null;
     if (user.role === "guest") {
       keyPath = `keys/${user.key}`;
-      console.log("🔍 [claimAccount] Check key:", keyPath);
       const kSnap = await get(ref(db, keyPath));
       if (!kSnap.exists()) { toast("Key không tồn tại hoặc đã hết hạn", "error"); return; }
       const k = kSnap.val();
@@ -85,7 +84,6 @@ async function claimAccount(user) {
     }
 
     // 2) Lấy danh sách acc
-    console.log("📥 [claimAccount] Đọc /lienquan...");
     const allSnap = await get(ref(db, "lienquan"));
     if (!allSnap.exists()) {
       toast("⚠️ Kho acc trống", "error");
@@ -93,8 +91,7 @@ async function claimAccount(user) {
     }
     const all = allSnap.val() || {};
     const openList = Object.entries(all).filter(([_, a]) => a && a.status === "open");
-    console.log("📋 [claimAccount] Tổng acc:", Object.keys(all).length, "| Acc Mở:", openList.length);
-
+    
     if (openList.length === 0) {
       toast("⚠️ Không có acc nào ở trạng thái Mở", "error");
       return;
@@ -103,24 +100,18 @@ async function claimAccount(user) {
     // 3) Random
     const picked = openList[Math.floor(Math.random() * openList.length)];
     const [id, acc] = picked;
-    console.log("🎲 [claimAccount] Chọn acc:", id, acc.username);
 
     // 4) Xóa acc
-    console.log("🗑️ [claimAccount] Xóa acc khỏi DB...");
     await remove(ref(db, `lienquan/${id}`));
-    console.log("✅ [claimAccount] Đã xóa acc");
 
-    // 5) Tăng usedAcc
+    // 5) Tăng usedAcc (dùng update trực tiếp)
     if (keyPath) {
       try {
         const kSnap2 = await get(ref(db, keyPath));
         if (kSnap2.exists()) {
           const newUsed = (kSnap2.val().usedAcc || 0) + 1;
-          await ref(db, keyPath + "/usedAcc").set ? null : null; // no-op
-          // Dùng update trực tiếp
           const { update } = await import("./firebase-config.js");
           await update(ref(db, keyPath), { usedAcc: newUsed });
-          console.log("📊 [claimAccount] usedAcc mới:", newUsed);
         }
       } catch (e) { console.error("Update usedAcc lỗi:", e); }
     }
