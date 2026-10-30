@@ -337,7 +337,7 @@ function bindLienQuan() {
   });
 }
 
-/* ===== TAB 4: CHUNG SỨC ===== */
+/* ===== TAB 4: CHUNG SỨC (NÂNG CẤP 3 TRẠNG THÁI) ===== */
 function tabChungSuc() {
   return `
     <div class="panel">
@@ -372,10 +372,12 @@ function bindChungSuc() {
     if (!username || !password) return toast("Nhập đủ thông tin", "error");
     
     const id = Date.now() + "_" + rand8();
+    
+    // Mặc định tạo mới là "pending" (Chưa hoàn thành)
     await set(ref(db, `chungsuc/${id}`), { 
       username, 
       password, 
-      isCompleted: false,
+      csStatus: "pending",
       createdAt: new Date().toISOString() 
     });
     
@@ -397,21 +399,35 @@ function bindChungSuc() {
     }
     
     body.innerHTML = list.map(([id, a]) => {
-      const isDone = a.isCompleted === true;
+      // Lấy trạng thái, nếu dữ liệu cũ (chưa có csStatus) thì mặc định là pending
+      const status = a.csStatus || "pending";
       
-      // ÉP MÀU TRỰC TIẾP BẰNG INLINE CSS - KHÔNG THỂ BỊ GHI ĐÈ
-      const inlineStyle = isDone 
-        ? "color: #22c55e; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.15); font-weight: bold; cursor: pointer; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; display: inline-block;"
-        : "color: #ef4444; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.15); font-weight: bold; cursor: pointer; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; display: inline-block;";
+      let inlineStyle = "";
+      let statusText = "";
       
-      const statusText = isDone ? "Hoàn Thành" : "Chưa Hoàn Thành";
+      if (status === "completed") {
+        // Hoàn thành - Xanh lá
+        inlineStyle = "color: #22c55e; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.15);";
+        statusText = "Hoàn Thành";
+      } else if (status === "processing") {
+        // Đang tiến hành - Xanh da trời nhạt
+        inlineStyle = "color: #7dd3fc; border: 1px solid #7dd3fc; background: rgba(125, 211, 252, 0.15);";
+        statusText = "Đang Tiến Hành";
+      } else {
+        // Chưa hoàn thành - Đỏ
+        inlineStyle = "color: #ef4444; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.15);";
+        statusText = "Chưa Hoàn Thành";
+      }
+      
+      // Các class chung cho thẻ span
+      const baseClass = "font-weight: bold; cursor: pointer; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; display: inline-block;";
       
       return `
       <tr>
         <td>${a.username}</td>
         <td>${a.password}</td>
         <td>
-          <span style="${inlineStyle}" data-toggle-status="${id}" data-current="${isDone}">
+          <span style="${baseClass} ${inlineStyle}" data-toggle-status="${id}" data-current="${status}">
             ${statusText}
           </span>
         </td>
@@ -421,12 +437,18 @@ function bindChungSuc() {
       </tr>
     `}).join("");
 
+    // Sự kiện click xoay vòng trạng thái: pending -> processing -> completed -> pending...
     body.querySelectorAll("[data-toggle-status]").forEach(el => {
       el.onclick = async () => {
         const id = el.dataset.toggleStatus;
-        const current = el.dataset.current === "true";
-        await update(ref(db, `chungsuc/${id}`), { isCompleted: !current });
-        toast(`Đã chuyển sang ${!current ? "Hoàn Thành" : "Chưa Hoàn Thành"}`, "ok");
+        const current = el.dataset.current;
+        let next = "pending";
+        
+        if (current === "pending") next = "processing";
+        else if (current === "processing") next = "completed";
+        
+        await update(ref(db, `chungsuc/${id}`), { csStatus: next });
+        toast(`Đã chuyển sang: ${next === "completed" ? "Hoàn Thành" : next === "processing" ? "Đang Tiến Hành" : "Chưa Hoàn Thành"}`, "ok");
       };
     });
 
