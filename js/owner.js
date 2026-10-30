@@ -372,7 +372,6 @@ function bindChungSuc() {
     if (!username || !password) return toast("Nhập đủ thông tin", "error");
     
     const id = Date.now() + "_" + rand8();
-    // Mặc định tạo mới sẽ là "Chưa hoàn thành" (false)
     await set(ref(db, `chungsuc/${id}`), { 
       username, 
       password, 
@@ -398,9 +397,13 @@ function bindChungSuc() {
     }
     
     body.innerHTML = list.map(([id, a]) => {
-      // FIX: Nếu dữ liệu cũ chưa có trường isCompleted, mặc định hiểu là false
       const isDone = a.isCompleted === true;
-      const statusClass = isDone ? "status open" : "status locked"; 
+      
+      // ÉP MÀU TRỰC TIẾP BẰNG INLINE CSS - KHÔNG THỂ BỊ GHI ĐÈ
+      const inlineStyle = isDone 
+        ? "color: #22c55e; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.15); font-weight: bold; cursor: pointer; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; display: inline-block;"
+        : "color: #ef4444; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.15); font-weight: bold; cursor: pointer; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; display: inline-block;";
+      
       const statusText = isDone ? "Hoàn Thành" : "Chưa Hoàn Thành";
       
       return `
@@ -408,7 +411,7 @@ function bindChungSuc() {
         <td>${a.username}</td>
         <td>${a.password}</td>
         <td>
-          <span class="${statusClass}" style="cursor: pointer; user-select: none;" data-toggle-status="${id}" data-current="${isDone}">
+          <span style="${inlineStyle}" data-toggle-status="${id}" data-current="${isDone}">
             ${statusText}
           </span>
         </td>
@@ -418,7 +421,6 @@ function bindChungSuc() {
       </tr>
     `}).join("");
 
-    // Sự kiện click vào chữ để chuyển đổi Hoàn Thành / Chưa
     body.querySelectorAll("[data-toggle-status]").forEach(el => {
       el.onclick = async () => {
         const id = el.dataset.toggleStatus;
@@ -428,7 +430,6 @@ function bindChungSuc() {
       };
     });
 
-    // Sự kiện xóa
     body.querySelectorAll("[data-del]").forEach((b) => {
       b.onclick = async () => {
         if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
