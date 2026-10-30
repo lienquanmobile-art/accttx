@@ -175,6 +175,40 @@ tr:hover td { background: rgba(0,240,255,.04); }
 .btn-lock:hover { box-shadow: 0 0 12px var(--red) !important; background: rgba(239, 68, 68, 0.15) !important; }
 .btn-open { border-color: var(--green) !important; color: var(--green) !important; }
 .btn-open:hover { box-shadow: 0 0 12px var(--green) !important; background: rgba(34, 197, 94, 0.15) !important; }
+/* ===== FIX MÀU SẮC TRẠNG THÁI (BẮT BUỘC ĐỂ Ở CUỐI FILE) ===== */
+td span.status {
+  padding: 4px 10px !important;
+  border-radius: 20px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  display: inline-block !important;
+  transition: 0.2s !important;
+  text-decoration: none !important;
+}
+
+/* Màu đỏ (Chưa hoàn thành / Khóa) */
+td span.status.locked {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid #ef4444 !important;
+}
+td span.status.locked:hover {
+  background: #ef4444 !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px #ef4444 !important;
+}
+
+/* Màu xanh lá (Hoàn thành / Mở) */
+td span.status.open {
+  color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+  border: 1px solid #22c55e !important;
+}
+td span.status.open:hover {
+  background: #22c55e !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px #22c55e !important;
+}
 
 @media (max-width: 640px) {
   .topbar { flex-direction: column; gap: 10px; }
