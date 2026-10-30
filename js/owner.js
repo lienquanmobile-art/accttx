@@ -6,6 +6,32 @@ import {
 
 let unsubKeys = null;
 
+/* ===== HÀM HIỂN THỊ BẢNG XÓA (MODAL) DÙNG CHUNG ===== */
+function showConfirmModal(title, message, onConfirm) {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  
+  overlay.innerHTML = `
+    <div class="modal-box" style="border-color: var(--red); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);">
+      <h3 style="color: var(--red);">${title}</h3>
+      <p style="color: var(--text); margin-bottom: 8px; line-height: 1.5; font-size: 0.95rem;">${message}</p>
+      
+      <div class="modal-actions">
+        <button class="btn-cancel-del" id="btnCancelDel">Hủy</button>
+        <button class="btn-confirm-del" id="btnConfirmDel">Xóa</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+
+  overlay.querySelector("#btnCancelDel").onclick = () => overlay.remove();
+  overlay.querySelector("#btnConfirmDel").onclick = () => {
+    overlay.remove();
+    onConfirm();
+  };
+}
+
 export function renderAdminTab(tab, user) {
   const box = document.getElementById("adminContent");
   if (!box) return;
@@ -181,7 +207,6 @@ function renderKeyListPane() {
 
   if (unsubKeys) unsubKeys();
   unsubKeys = listenKeys((list) => {
-    // SẮP XẾP KEY MỚI NHẤT LÊN ĐẦU
     list.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
     const container = document.getElementById("keyListContainer");
     if (!container) return;
@@ -233,11 +258,16 @@ function renderKeyListPane() {
       btn.onclick = () => copyText(btn.dataset.copy);
     });
     container.querySelectorAll("[data-del]").forEach(btn => {
-      btn.onclick = async () => {
-        if (!confirm("Bạn có chắc chắn muốn xóa key này? Người dùng sẽ không thể đăng nhập được nữa.")) return;
-        await remove(ref(db, `keys/${btn.dataset.del}`));
-        await writeLog("owner", "Xóa key khách", btn.dataset.del);
-        toast("Đã xóa key", "ok");
+      btn.onclick = () => {
+        showConfirmModal(
+          "⚠️ CẢNH BÁO", 
+          "Bạn có chắc chắn muốn xóa key này?<br>Người dùng sẽ không thể đăng nhập được nữa.", 
+          async () => {
+            await remove(ref(db, `keys/${btn.dataset.del}`));
+            await writeLog("owner", "Xóa key khách", btn.dataset.del);
+            toast("Đã xóa key", "ok");
+          }
+        );
       };
     });
   });
@@ -293,7 +323,6 @@ function bindLienQuan() {
     const data = snap.val() || {};
     let list = Object.entries(data);
     
-    // SẮP XẾP ACC MỚI NHẤT LÊN ĐẦU
     list.sort((a, b) => b[0].localeCompare(a[0]));
 
     if (!list.length) {
@@ -332,11 +361,16 @@ function bindLienQuan() {
     });
 
     body.querySelectorAll("[data-del]").forEach((b) => {
-      b.onclick = async () => {
-        if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
-        await remove(ref(db, `lienquan/${b.dataset.del}`));
-        await writeLog("owner", "Xóa acc Liên Quân", b.dataset.del);
-        toast("Đã xóa", "ok");
+      b.onclick = () => {
+        showConfirmModal(
+          "⚠️ CẢNH BÁO", 
+          "Bạn có chắc chắn muốn xóa tài khoản Liên Quân này?", 
+          async () => {
+            await remove(ref(db, `lienquan/${b.dataset.del}`));
+            await writeLog("owner", "Xóa acc Liên Quân", b.dataset.del);
+            toast("Đã xóa", "ok");
+          }
+        );
       };
     });
   });
@@ -396,7 +430,6 @@ function bindChungSuc() {
     const data = snap.val() || {};
     let list = Object.entries(data);
 
-    // SẮP XẾP ACC MỚI NHẤT LÊN ĐẦU
     list.sort((a, b) => b[0].localeCompare(a[0]));
     
     if (!list.length) {
@@ -453,10 +486,15 @@ function bindChungSuc() {
     });
 
     body.querySelectorAll("[data-del]").forEach((b) => {
-      b.onclick = async () => {
-        if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
-        await remove(ref(db, `chungsuc/${b.dataset.del}`));
-        toast("Đã xóa", "ok");
+      b.onclick = () => {
+        showConfirmModal(
+          "⚠️ CẢNH BÁO", 
+          "Bạn có chắc chắn muốn xóa tài khoản Chung sức này?", 
+          async () => {
+            await remove(ref(db, `chungsuc/${b.dataset.del}`));
+            toast("Đã xóa", "ok");
+          }
+        );
       };
     });
   });
@@ -480,7 +518,6 @@ function bindLog() {
     const body = document.getElementById("logBody");
     if (!body) return;
     const data = snap.val() || {};
-    // SẮP XẾP LOG MỚI NHẤT LÊN ĐẦU
     const list = Object.entries(data).sort((a, b) => b[0].localeCompare(a[0]));
     
     if (!list.length) {
