@@ -26,15 +26,11 @@ export function renderAdminTab(tab, user) {
 /* ===== TAB 1: TẠO TÀI KHOẢN ===== */
 function tabCreateAccount(user) {
   const onlyUser = user.role === "admin";
-  return `
-    <div class="panel">
+  return `<div class="panel">
       <h3>Tạo tài khoản mới</h3>
       <label>Loại tài khoản</label>
       <select id="ca_role">
-        ${onlyUser ? `<option value="user">User</option>` : `
-          <option value="admin">Admin</option>
-          <option value="user">User</option>
-        `}
+        ${onlyUser ? '<option value="user">User</option>' : '<option value="admin">Admin</option><option value="user">User</option>'}
       </select>
       <label>Tên đăng nhập</label>
       <input id="ca_username" placeholder="vd: player01" />
@@ -42,8 +38,7 @@ function tabCreateAccount(user) {
       <input id="ca_password" placeholder="mật khẩu" />
       <button class="btn-neon full" id="ca_create">Tạo</button>
       <div id="ca_result"></div>
-    </div>
-  `;
+    </div>`;
 }
 
 function bindCreateAccount(user) {
@@ -58,21 +53,18 @@ function bindCreateAccount(user) {
 
     const key = await genFixedKey(role);
     await set(ref(db, `accounts/${username}`), {
-      username, password, role, key,
-      createdAt: new Date().toISOString(),
+      username, password, role, key, createdAt: new Date().toISOString()
     });
     await set(ref(db, `accounts_by_key/${key}`), username);
     await writeLog(user.username, "Tạo tài khoản", `${role}:${username}`);
 
-    document.getElementById("ca_result").innerHTML = `
-      <div class="result-box">
+    document.getElementById("ca_result").innerHTML = `<div class="result-box">
         <div class="row"><span>Loại tài khoản</span><span>${role}</span></div>
         <div class="row"><span>Tên đăng nhập</span><span>${username}</span></div>
         <div class="row"><span>Mật khẩu</span><span>${password}</span></div>
         <div class="row"><span>Private key</span><span>${key}</span></div>
         <button class="copy-btn" data-copy="${key}">Sao chép</button>
-      </div>
-    `;
+      </div>`;
     document.querySelector("#ca_result .copy-btn").onclick = () => copyText(key);
     toast("Tạo tài khoản thành công", "ok");
   };
@@ -80,14 +72,12 @@ function bindCreateAccount(user) {
 
 /* ===== TAB 2: KEYS ===== */
 function tabKeys(user) {
-  return `
-    <div class="sub-tabs">
+  return `<div class="sub-tabs">
       <button class="sub-tab active" data-s="create">Tạo Key</button>
       <button class="sub-tab" data-s="list">Danh sách key đã tạo</button>
     </div>
     <div id="keyPaneCreate"></div>
-    <div id="keyPaneList" class="hidden"></div>
-  `;
+    <div id="keyPaneList" class="hidden"></div>`;
 }
 
 function bindKeys(user) {
@@ -107,8 +97,7 @@ function bindKeys(user) {
 
 function renderKeyCreatePane() {
   const pane = document.getElementById("keyPaneCreate");
-  pane.innerHTML = `
-    <div class="panel">
+  pane.innerHTML = `<div class="panel">
       <h3>Tạo key khách</h3>
       <label>Tên Key</label>
       <input id="k_name" placeholder="vd: Nguyễn Văn A" />
@@ -131,8 +120,7 @@ function renderKeyCreatePane() {
       </select>
       <button class="btn-neon full" id="k_create">Tạo</button>
       <div id="k_result"></div>
-    </div>
-  `;
+    </div>`;
 
   document.getElementById("k_create").onclick = async () => {
     const name = document.getElementById("k_name").value.trim();
@@ -145,25 +133,19 @@ function renderKeyCreatePane() {
     await set(ref(db, `keys/${key}`), {
       name, duration, key,
       maxAcc: maxAcc === Infinity ? -1 : maxAcc,
-      usedAcc: 0,
-      maxDevices: maxDevices,
-      devices: {},
-      activatedAt: null,
-      createdAt: new Date().toISOString(),
+      usedAcc: 0, maxDevices: maxDevices, devices: {}, activatedAt: null, createdAt: new Date().toISOString(),
     });
     await writeLog("owner", "Tạo key khách", `${name} - ${duration} - ${maxDevices}TB`);
 
     const sec = KEY_DURATIONS[duration].sec;
     const devTxt = maxDevices === -1 ? "Không giới hạn" : maxDevices + " thiết bị";
-    document.getElementById("k_result").innerHTML = `
-      <div class="result-box">
+    document.getElementById("k_result").innerHTML = `<div class="result-box">
         <div class="row"><span>Tên Key</span><span>${name}</span></div>
         <div class="row"><span>Thời gian</span><span>${fmtTime(sec)}</span></div>
         <div class="row"><span>Số lượng thiết bị</span><span>0/${devTxt}</span></div>
         <div class="row"><span>Private key</span><span>${key}</span></div>
         <button class="copy-btn" data-copy="${key}">Sao chép</button>
-      </div>
-    `;
+      </div>`;
     document.querySelector("#k_result .copy-btn").onclick = () => copyText(key);
     toast("Tạo key thành công", "ok");
     renderKeyListPane();
@@ -172,12 +154,7 @@ function renderKeyCreatePane() {
 
 function renderKeyListPane() {
   const pane = document.getElementById("keyPaneList");
-  pane.innerHTML = `
-    <div class="panel">
-      <h3>Danh sách key đã tạo</h3>
-      <div id="keyListContainer" style="display:flex; flex-direction:column; gap:15px;"></div>
-    </div>
-  `;
+  pane.innerHTML = `<div class="panel"><h3>Danh sách key đã tạo</h3><div id="keyListContainer" style="display:flex; flex-direction:column; gap:15px;"></div></div>`;
 
   if (unsubKeys) unsubKeys();
   unsubKeys = listenKeys((list) => {
@@ -203,15 +180,12 @@ function renderKeyListPane() {
 
       let devListHtml = "";
       if (devCount > 0) {
-        devListHtml = Object.entries(devs).map(([id, d]) => 
-          `<div style="font-size:0.8rem; color:#00f0ff; margin-top:4px; padding-left:10px;">↳ ${d.name} (ID: ${id.slice(0,8)}...)</div>`
-        ).join("");
+        devListHtml = Object.entries(devs).map(([id, d]) => `<div style="font-size:0.8rem; color:#00f0ff; margin-top:4px; padding-left:10px;">↳ ${d.name} (ID: ${id.slice(0,8)}...)</div>`).join("");
       } else {
         devListHtml = `<div style="font-size:0.8rem; color:#8ab; margin-top:4px; padding-left:10px;">↳ Chưa có thiết bị nào</div>`;
       }
 
-      return `
-        <div class="result-box" style="max-width: 100%; display: block; padding: 15px 20px;">
+      return `<div class="result-box" style="max-width: 100%; display: block; padding: 15px 20px;">
           <div style="margin-bottom: 6px;">Tên key : <span style="color:#fff; font-weight:600;">${k.name}</span></div>
           <div style="margin-bottom: 6px;">Thời gian : <span style="color:#fff; font-weight:600;">${timeTxt}</span></div>
           <div style="margin-bottom: 6px;">Số lượng thiết bị : <span style="color:#fff; font-weight:600;">${devCount}/${maxDev}</span></div>
@@ -219,13 +193,11 @@ function renderKeyListPane() {
           <div style="margin-bottom: 6px; margin-top:8px;">Private key : <span style="color:#fff; font-weight:600; font-family:monospace;">${k.key}</span></div>
           <div style="margin-bottom: 6px;">Số acc đã lấy : <span style="color:#fff; font-weight:600;">${k.usedAcc || 0}/${maxTxt}</span></div>
           <div>Trạng Thái : <span class="status ${st}" style="margin-left:5px;">${stTxt}</span></div>
-          
           <div style="margin-top: 15px; border-top: 1px dashed rgba(0,240,255,0.3); padding-top: 10px; display: flex; gap: 10px;">
             <button class="copy-btn" data-copy="${k.key}">Sao chép Key</button>
             <button class="copy-btn" style="border-color:var(--red); color:var(--red);" data-del="${k.key}">Xóa Key</button>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join("");
 
     container.querySelectorAll("[data-copy]").forEach(btn => {
@@ -244,8 +216,7 @@ function renderKeyListPane() {
 
 /* ===== TAB 3: LIÊN QUÂN ===== */
 function tabLienQuan() {
-  return `
-    <div class="panel">
+  return `<div class="panel">
       <h3>Thêm tài khoản Liên Quân</h3>
       <div class="form-row">
         <input id="lq_user" placeholder="Tên tài khoản" />
@@ -258,13 +229,10 @@ function tabLienQuan() {
     <div class="panel">
       <h3>Danh sách tài khoản đã thêm</h3>
       <table>
-        <thead>
-          <tr><th>Tên TK</th><th>Mật khẩu</th><th>Số tướng</th><th>Số skin</th><th>Trạng thái</th><th>Hành động</th></tr>
-        </thead>
+        <thead><tr><th>Tên TK</th><th>Mật khẩu</th><th>Số tướng</th><th>Số skin</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
         <tbody id="lqBody"></tbody>
       </table>
-    </div>
-  `;
+    </div>`;
 }
 
 function bindLienQuan() {
@@ -276,11 +244,7 @@ function bindLienQuan() {
     if (!username || !password) return toast("Nhập đủ thông tin", "error");
 
     const id = Date.now() + "_" + rand8();
-    await set(ref(db, `lienquan/${id}`), {
-      username, password, tuong, skin, 
-      status: "open",
-      createdAt: new Date().toISOString(),
-    });
+    await set(ref(db, `lienquan/${id}`), { username, password, tuong, skin, status: "open", createdAt: new Date().toISOString() });
     await writeLog("owner", "Thêm acc Liên Quân", username);
     toast("Đã thêm", "ok");
     ["lq_user","lq_pass","lq_tuong","lq_skin"].forEach((i) => document.getElementById(i).value = "");
@@ -301,27 +265,21 @@ function bindLienQuan() {
       const btnToggleText = isOpen ? "Khóa" : "Mở";
       const btnToggleClass = isOpen ? "btn-lock" : "btn-open";
       
-      return `
-      <tr>
-        <td>${a.username}</td>
-        <td>${a.password}</td>
-        <td>${a.tuong}</td>
-        <td>${a.skin}</td>
+      return `<tr>
+        <td>${a.username}</td><td>${a.password}</td><td>${a.tuong}</td><td>${a.skin}</td>
         <td><span class="status ${isOpen ? "open" : "locked"}">${statusText}</span></td>
         <td>
           <button class="copy-btn ${btnToggleClass}" data-toggle="${id}" data-current="${a.status}">${btnToggleText}</button>
           <button class="copy-btn" style="border-color:var(--red); color:var(--red);" data-del="${id}">Xóa</button>
         </td>
-      </tr>
-    `}).join("");
+      </tr>`;
+    }).join("");
 
     body.querySelectorAll("[data-toggle]").forEach((b) => {
       b.onclick = async () => {
-        const id = b.dataset.toggle;
-        const current = b.dataset.current;
-        const newStatus = current === "open" ? "locked" : "open";
-        await update(ref(db, `lienquan/${id}`), { status: newStatus });
-        await writeLog("owner", "Đổi trạng thái LQ", `${id} -> ${newStatus}`);
+        const newStatus = b.dataset.current === "open" ? "locked" : "open";
+        await update(ref(db, `lienquan/${b.dataset.toggle}`), { status: newStatus });
+        await writeLog("owner", "Đổi trạng thái LQ", `${b.dataset.toggle} -> ${newStatus}`);
         toast(`Đã chuyển sang ${newStatus === "open" ? "Mở" : "Khóa"}`, "ok");
       };
     });
@@ -337,10 +295,9 @@ function bindLienQuan() {
   });
 }
 
-/* ===== TAB 4: CHUNG SỨC ===== */
+/* ===== TAB 4: CHUNG SỨC (Cập nhật trạng thái) ===== */
 function tabChungSuc() {
-  return `
-    <div class="panel">
+  return `<div class="panel">
       <h3>Thêm tài khoản Chung sức</h3>
       <div class="form-row">
         <input id="cs_user" placeholder="Tên tài khoản" />
@@ -351,18 +308,10 @@ function tabChungSuc() {
     <div class="panel">
       <h3>Danh sách tài khoản đã thêm</h3>
       <table>
-        <thead>
-          <tr>
-            <th>Tên TK</th>
-            <th>Mật khẩu</th>
-            <th>Trạng Thái</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Tên TK</th><th>Mật khẩu</th><th>Trạng Thái</th><th>Hành động</th></tr></thead>
         <tbody id="csBody"></tbody>
       </table>
-    </div>
-  `;
+    </div>`;
 }
 
 function bindChungSuc() {
@@ -372,12 +321,8 @@ function bindChungSuc() {
     if (!username || !password) return toast("Nhập đủ thông tin", "error");
     
     const id = Date.now() + "_" + rand8();
-    // Mặc định trạng thái là chưa hoàn thành
     await set(ref(db, `chungsuc/${id}`), { 
-      username, 
-      password, 
-      status: "pending", // pending = Chưa hoàn thành, done = Hoàn thành
-      createdAt: new Date().toISOString() 
+      username, password, status: "pending", createdAt: new Date().toISOString() 
     });
     
     await writeLog("owner", "Thêm acc Chung sức", username);
@@ -398,42 +343,31 @@ function bindChungSuc() {
     }
     
     body.innerHTML = list.map(([id, a]) => {
-      // Kiểm tra trạng thái, nếu không có thì mặc định là pending
-      const status = a.status || "pending"; 
-      const isDone = status === "done";
-      
+      const isDone = a.status === "done";
       const statusText = isDone ? "Hoàn Thành" : "Chưa Hoàn Thành";
       const btnToggleText = isDone ? "Chưa Hoàn Thành" : "Hoàn Thành";
-      const btnToggleClass = isDone ? "btn-lock" : "btn-open"; // Tái sử dụng class màu đỏ/xanh
+      const btnToggleClass = isDone ? "btn-lock" : "btn-open";
 
-      return `
-      <tr>
+      return `<tr>
         <td>${a.username}</td>
         <td>${a.password}</td>
+        <td><span class="status ${isDone ? "open" : "locked"}">${statusText}</span></td>
         <td>
-          <span class="status ${isDone ? "open" : "locked"}">${statusText}</span>
-        </td>
-        <td>
-          <button class="copy-btn ${btnToggleClass}" data-toggle="${id}" data-current="${status}">${btnToggleText}</button>
+          <button class="copy-btn ${btnToggleClass}" data-toggle="${id}" data-current="${a.status || 'pending'}">${btnToggleText}</button>
           <button class="copy-btn" style="border-color:var(--red); color:var(--red);" data-del="${id}">Xóa</button>
         </td>
-      </tr>
-    `}).join("");
+      </tr>`;
+    }).join("");
 
-    // Nút chuyển đổi Hoàn Thành / Chưa Hoàn Thành
     body.querySelectorAll("[data-toggle]").forEach((b) => {
       b.onclick = async () => {
-        const id = b.dataset.toggle;
-        const current = b.dataset.current;
-        const newStatus = current === "done" ? "pending" : "done";
-        
-        await update(ref(db, `chungsuc/${id}`), { status: newStatus });
-        await writeLog("owner", "Đổi trạng thái Chung sức", `${id} -> ${newStatus}`);
+        const newStatus = b.dataset.current === "done" ? "pending" : "done";
+        await update(ref(db, `chungsuc/${b.dataset.toggle}`), { status: newStatus });
+        await writeLog("owner", "Đổi trạng thái Chung sức", `${b.dataset.toggle} -> ${newStatus}`);
         toast(`Đã chuyển sang ${newStatus === "done" ? "Hoàn Thành" : "Chưa Hoàn Thành"}`, "ok");
       };
     });
 
-    // Nút xóa
     body.querySelectorAll("[data-del]").forEach((b) => {
       b.onclick = async () => {
         if (!confirm("Bạn có chắc chắn muốn xóa acc này?")) return;
@@ -446,15 +380,7 @@ function bindChungSuc() {
 
 /* ===== TAB 5: LOG ===== */
 function tabLog() {
-  return `
-    <div class="panel">
-      <h3>Lịch sử hành động</h3>
-      <table>
-        <thead><tr><th>Thời gian</th><th>Tài khoản</th><th>Hành động</th><th>Chi tiết</th></tr></thead>
-        <tbody id="logBody"></tbody>
-      </table>
-    </div>
-  `;
+  return `<div class="panel"><h3>Lịch sử hành động</h3><table><thead><tr><th>Thời gian</th><th>Tài khoản</th><th>Hành động</th><th>Chi tiết</th></tr></thead><tbody id="logBody"></tbody></table></div>`;
 }
 
 function bindLog() {
@@ -467,13 +393,6 @@ function bindLog() {
       body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#8ab">Chưa có log</td></tr>`;
       return;
     }
-    body.innerHTML = list.slice(0, 200).map(([_, l]) => `
-      <tr>
-        <td>${new Date(l.time).toLocaleString("vi-VN")}</td>
-        <td>${l.actor}</td>
-        <td>${l.action}</td>
-        <td>${l.detail || ""}</td>
-      </tr>
-    `).join("");
+    body.innerHTML = list.slice(0, 200).map(([_, l]) => `<tr><td>${new Date(l.time).toLocaleString("vi-VN")}</td><td>${l.actor}</td><td>${l.action}</td><td>${l.detail || ""}</td></tr>`).join("");
   });
 }
