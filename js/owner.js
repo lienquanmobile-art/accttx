@@ -287,7 +287,10 @@ function tabLienQuan() {
       <button class="btn-neon full" id="lq_add">Thêm</button>
     </div>
     <div class="panel">
-      <h3>Danh sách tài khoản đã thêm</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0;">Danh sách tài khoản đã thêm</h3>
+        <span id="lqCount" style="color: var(--neon-cyan); font-weight: bold; font-size: 0.9rem;">Số acc : 0</span>
+      </div>
       <table>
         <thead>
           <tr><th>Tên TK</th><th>Mật khẩu</th><th>Số tướng</th><th>Số skin</th><th>Trạng thái</th><th>Hành động</th></tr>
@@ -319,11 +322,15 @@ function bindLienQuan() {
 
   onValue(ref(db, "lienquan"), (snap) => {
     const body = document.getElementById("lqBody");
+    const countEl = document.getElementById("lqCount");
     if (!body) return;
     const data = snap.val() || {};
     let list = Object.entries(data);
     
     list.sort((a, b) => b[0].localeCompare(a[0]));
+
+    // Cập nhật số lượng
+    if (countEl) countEl.textContent = `Số acc : ${list.length}`;
 
     if (!list.length) {
       body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#8ab">Chưa có acc</td></tr>`;
@@ -388,7 +395,10 @@ function tabChungSuc() {
       <button class="btn-neon full" id="cs_add">Thêm</button>
     </div>
     <div class="panel">
-      <h3>Danh sách tài khoản đã thêm</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0;">Danh sách tài khoản đã thêm</h3>
+        <span id="csCount" style="color: var(--neon-cyan); font-weight: bold; font-size: 0.9rem;">Số acc : 0</span>
+      </div>
       <table>
         <thead>
           <tr>
@@ -426,12 +436,16 @@ function bindChungSuc() {
 
   onValue(ref(db, "chungsuc"), (snap) => {
     const body = document.getElementById("csBody");
+    const countEl = document.getElementById("csCount");
     if (!body) return;
     const data = snap.val() || {};
     let list = Object.entries(data);
 
     list.sort((a, b) => b[0].localeCompare(a[0]));
     
+    // Cập nhật số lượng
+    if (countEl) countEl.textContent = `Số acc : ${list.length}`;
+
     if (!list.length) {
       body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#8ab">Chưa có acc</td></tr>`;
       return;
