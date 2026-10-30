@@ -6,8 +6,8 @@
   --bg-1: #0a0f1f;
   --bg-2: #111a33;
   --text: #dff6ff;
-  --green: #22c55e;
-  --red: #ef4444;
+  --green: #22c55e; /* Màu xanh lá */
+  --red: #ef4444;   /* Màu đỏ */
   --sky: #7dd3fc;
   --yellow: #facc15;
 }
@@ -74,7 +74,6 @@ body::before {
 .btn-neon.small { padding: 6px 12px; font-size: .82rem; }
 .btn-neon.big { padding: 20px 40px; font-size: 1.2rem; margin: 20px 0; }
 
-/* ===== CSS TÙY CHỈNH CHO INPUT & SELECT ===== */
 input, select {
   width: 100%;
   padding: 12px 16px;
@@ -89,7 +88,6 @@ input, select {
   font-family: inherit;
 }
 
-/* Xóa giao diện mặc định xấu xí của select */
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -101,7 +99,6 @@ select {
   cursor: pointer;
 }
 
-/* Style cho các option bên trong select (Chỉ hoạt động tốt trên Chrome/Edge) */
 select option {
   background-color: #0a0f1f;
   color: #fff;
@@ -147,89 +144,6 @@ label { font-size: .85rem; color: var(--neon-cyan); letter-spacing: 1px; display
   border: 1px solid currentColor;
 }
 
-/* ===== CSS CHO MODAL XÓA KEY ===== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(5px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.modal-box {
-  background: #0a0f1f;
-  padding: 24px 30px;
-  border-radius: 12px;
-  border: 1px solid var(--red);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-}
-
-.modal-box h3 {
-  color: var(--red);
-  margin-bottom: 16px;
-  font-size: 1.2rem;
-  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-}
-
-.modal-box p {
-  color: var(--text);
-  margin-bottom: 8px;
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 24px;
-}
-
-.modal-actions button {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-confirm-del {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid var(--red);
-  color: var(--red);
-}
-.btn-confirm-del:hover {
-  background: var(--red);
-  color: #fff;
-  box-shadow: 0 0 15px var(--red);
-}
-
-.btn-cancel-del {
-  background: transparent;
-  border: 1px solid #8ab;
-  color: #8ab;
-}
-.btn-cancel-del:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: rgba(0,240,255,.4); border-radius: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
 /* ===== MODAL CHUNG ===== */
 .modal-overlay {
   position: fixed;
@@ -254,54 +168,23 @@ label { font-size: .85rem; color: var(--neon-cyan); letter-spacing: 1px; display
   text-align: center;
 }
 
-.modal-box h3 {
-  margin-bottom: 16px;
-  font-size: 1.2rem;
-}
+.modal-box h3 { margin-bottom: 16px; font-size: 1.2rem; }
 
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 24px;
-}
-
-.modal-actions button {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-  background: transparent;
-}
-
+.modal-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.modal-actions button { flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; background: transparent; }
 .btn-cancel-del { border: 1px solid #8ab; color: #8ab; }
 .btn-cancel-del:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 .btn-confirm-del { border: 1px solid var(--red); color: var(--red); }
 .btn-confirm-del:hover { background: var(--red); color: #fff; box-shadow: 0 0 15px var(--red); }
 
-/* CSS hiển thị tin nhắn chat */
-.chat-msg-item {
-  display: flex;
-  flex-direction: column;
-  max-width: 70%;
-  margin-bottom: 12px;
-}
+/* ===== HIỂU ỨNG CHAT ===== */
+.chat-msg-item { display: flex; flex-direction: column; max-width: 70%; margin-bottom: 12px; }
 .chat-msg-item.my-msg { align-self: flex-end; align-items: flex-end; margin-left: auto; }
 .chat-msg-item.other-msg { align-self: flex-start; align-items: flex-start; }
-
 .chat-msg-name { font-size: 0.7rem; margin-bottom: 4px; font-weight: bold; }
-.chat-msg-text {
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  word-break: break-word;
-}
+.chat-msg-text { padding: 10px 14px; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; }
 .my-msg .chat-msg-text { background: rgba(255, 0, 212, 0.2); border: 1px solid var(--neon-pink); border-bottom-right-radius: 2px; }
 .other-msg .chat-msg-text { background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3); border-bottom-left-radius: 2px; }
-
 .chat-input-area { display: flex; gap: 10px; }
 .chat-input-area input { margin: 0; padding: 12px; border-radius: 20px; background: rgba(255,255,255,.05); flex: 1; }
 .chat-input-area button { background: var(--neon-cyan); color: #000; border: none; border-radius: 20px; padding: 0 20px; font-weight: bold; cursor: pointer; transition: 0.2s; }
@@ -309,38 +192,7 @@ label { font-size: .85rem; color: var(--neon-cyan); letter-spacing: 1px; display
 
 .room-card { background: rgba(0,240,255,.05); border: 1px solid rgba(0,240,255,.3); padding: 12px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 .room-card button { background: var(--neon-cyan); color: #000; border: none; padding: 6px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-/* ===== MÀU SẮC TRẠNG THÁI CHUNG SỨC ===== */
-.status {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  display: inline-block;
-  transition: 0.2s;
-}
 
-/* Chưa hoàn thành (Màu đỏ) */
-.status.locked {
-  color: var(--red) !important;
-  background: rgba(239, 68, 68, 0.15) !important;
-  border: 1px solid var(--red) !important;
-}
-
-.status.locked:hover {
-  background: var(--red) !important;
-  color: #fff !important;
-  box-shadow: 0 0 10px var(--red);
-}
-
-/* Hoàn thành (Màu xanh lá) */
-.status.open {
-  color: var(--green) !important;
-  background: rgba(34, 197, 94, 0.15) !important;
-  border: 1px solid var(--green) !important;
-}
-
-.status.open:hover {
-  background: var(--green) !important;
-  color: #000 !important;
-  box-shadow: 0 0 10px var(--green);
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(0,240,255,.4); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
