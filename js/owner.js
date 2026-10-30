@@ -181,6 +181,7 @@ function renderKeyListPane() {
 
   if (unsubKeys) unsubKeys();
   unsubKeys = listenKeys((list) => {
+    // SẮP XẾP KEY MỚI NHẤT LÊN ĐẦU
     list.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
     const container = document.getElementById("keyListContainer");
     if (!container) return;
@@ -290,7 +291,11 @@ function bindLienQuan() {
     const body = document.getElementById("lqBody");
     if (!body) return;
     const data = snap.val() || {};
-    const list = Object.entries(data);
+    let list = Object.entries(data);
+    
+    // SẮP XẾP ACC MỚI NHẤT LÊN ĐẦU
+    list.sort((a, b) => b[0].localeCompare(a[0]));
+
     if (!list.length) {
       body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#8ab">Chưa có acc</td></tr>`;
       return;
@@ -337,7 +342,7 @@ function bindLienQuan() {
   });
 }
 
-/* ===== TAB 4: CHUNG SỨC (NÂNG CẤP 3 TRẠNG THÁI) ===== */
+/* ===== TAB 4: CHUNG SỨC ===== */
 function tabChungSuc() {
   return `
     <div class="panel">
@@ -372,8 +377,6 @@ function bindChungSuc() {
     if (!username || !password) return toast("Nhập đủ thông tin", "error");
     
     const id = Date.now() + "_" + rand8();
-    
-    // Mặc định tạo mới là "pending" (Chưa hoàn thành)
     await set(ref(db, `chungsuc/${id}`), { 
       username, 
       password, 
@@ -391,7 +394,10 @@ function bindChungSuc() {
     const body = document.getElementById("csBody");
     if (!body) return;
     const data = snap.val() || {};
-    const list = Object.entries(data);
+    let list = Object.entries(data);
+
+    // SẮP XẾP ACC MỚI NHẤT LÊN ĐẦU
+    list.sort((a, b) => b[0].localeCompare(a[0]));
     
     if (!list.length) {
       body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#8ab">Chưa có acc</td></tr>`;
@@ -399,27 +405,22 @@ function bindChungSuc() {
     }
     
     body.innerHTML = list.map(([id, a]) => {
-      // Lấy trạng thái, nếu dữ liệu cũ (chưa có csStatus) thì mặc định là pending
       const status = a.csStatus || "pending";
       
       let inlineStyle = "";
       let statusText = "";
       
       if (status === "completed") {
-        // Hoàn thành - Xanh lá
         inlineStyle = "color: #22c55e; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.15);";
         statusText = "Hoàn Thành";
       } else if (status === "processing") {
-        // Đang tiến hành - Xanh da trời nhạt
         inlineStyle = "color: #7dd3fc; border: 1px solid #7dd3fc; background: rgba(125, 211, 252, 0.15);";
         statusText = "Đang Tiến Hành";
       } else {
-        // Chưa hoàn thành - Đỏ
         inlineStyle = "color: #ef4444; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.15);";
         statusText = "Chưa Hoàn Thành";
       }
       
-      // Các class chung cho thẻ span
       const baseClass = "font-weight: bold; cursor: pointer; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; display: inline-block;";
       
       return `
@@ -437,7 +438,6 @@ function bindChungSuc() {
       </tr>
     `}).join("");
 
-    // Sự kiện click xoay vòng trạng thái: pending -> processing -> completed -> pending...
     body.querySelectorAll("[data-toggle-status]").forEach(el => {
       el.onclick = async () => {
         const id = el.dataset.toggleStatus;
@@ -480,7 +480,9 @@ function bindLog() {
     const body = document.getElementById("logBody");
     if (!body) return;
     const data = snap.val() || {};
+    // SẮP XẾP LOG MỚI NHẤT LÊN ĐẦU
     const list = Object.entries(data).sort((a, b) => b[0].localeCompare(a[0]));
+    
     if (!list.length) {
       body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#8ab">Chưa có log</td></tr>`;
       return;
