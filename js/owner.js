@@ -398,7 +398,7 @@ function bindChungSuc() {
     }
     
     body.innerHTML = list.map(([id, a]) => {
-      // Nếu isCompleted = true thì Hoàn Thành (Xanh), ngược lại Chưa (Đỏ)
+      // FIX: Nếu dữ liệu cũ chưa có trường isCompleted, mặc định hiểu là false
       const isDone = a.isCompleted === true;
       const statusClass = isDone ? "status open" : "status locked"; 
       const statusText = isDone ? "Hoàn Thành" : "Chưa Hoàn Thành";
